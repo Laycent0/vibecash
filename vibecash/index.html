@@ -1,0 +1,2154 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Дашборд — Финансы TMA</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            mintCard: '#eaf7f1',
+            mintIcon: '#25b887',
+            peachCard: '#fdf0ed',
+            peachIcon: '#f26b5b',
+            softGray: '#f6f7f9',
+            darkText: '#111827'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #eef1f5;
+      color: #111827;
+      overflow-x: hidden;
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .floating-nav {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 10px 30px -5px rgba(17, 24, 39, 0.08), 0 4px 12px -2px rgba(17, 24, 39, 0.04);
+    }
+    .card-soft {
+      background: #f7f8fa;
+      border: 1px solid #eef0f4;
+    }
+    .sheet-enter {
+      animation: slideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100%); opacity: 0.5; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    @keyframes pulseRing {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(37, 184, 135, 0.5); }
+      70% { transform: scale(1); box-shadow: 0 0 0 18px rgba(37, 184, 135, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(37, 184, 135, 0); }
+    }
+    .mic-pulse {
+      animation: pulseRing 2s infinite;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-start sm:py-4 bg-[#e5e9f0]">
+
+  <!-- Main Mobile Frame -->
+  <div class="w-full max-w-md min-h-screen sm:min-h-[840px] sm:max-h-[92vh] bg-white sm:rounded-[40px] sm:border-[6px] sm:border-white shadow-2xl flex flex-col relative overflow-hidden">
+
+    <!-- Top Bar -->
+    <header class="px-5 pt-4 pb-2 flex items-center justify-between bg-white sticky top-0 z-20">
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 id="headerSubtitle" class="text-2xl font-extrabold tracking-tight text-gray-900">Дашборд</h1>
+          <button id="headerSyncPillBtn" type="button" class="px-2 py-0.5 rounded-full bg-gray-100 text-[10px] font-bold text-gray-500 flex items-center gap-1 transition" title="Статус синхронизации Supabase">
+            <span id="syncDot" class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+            <span id="syncStatusShort">Локально</span>
+          </button>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="currencyToggleBtn" type="button" class="px-3 py-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-xs font-bold text-gray-700 transition" title="Сменить валюту">
+          <span id="activeCurrencyBadge">₽ RUB</span>
+        </button>
+        <button id="openVoiceModalBtn" type="button" class="w-9 h-9 rounded-full bg-[#e6f7f1] hover:bg-[#d5f2e8] text-[#25b887] flex items-center justify-center transition" title="Голосовой / быстрый ввод">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 10v2a7 7 0 01-14 0v-2M12 19v4m-4 0h8"></path>
+          </svg>
+        </button>
+        <button id="openTmaCodeBtn" type="button" class="w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center transition" title="Уведомления и подключение к Telegram">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Scrollable Main Area -->
+    <main class="flex-1 overflow-y-auto no-scrollbar px-5 pt-2 pb-28 space-y-4">
+
+      <!-- VIEW 1: DASHBOARD (ДАШБОРД) -->
+      <div id="view-home" class="space-y-4">
+
+        <!-- 2 Big Pastel Hero Cards: Кошелёк & Расходы -->
+        <div class="grid grid-cols-2 gap-3">
+          <!-- Left Mint Card: Кошелёк -->
+          <div class="rounded-[24px] p-4 bg-gradient-to-br from-[#e8f8f2] to-[#f2fbf7] border border-[#d6f1e6] flex flex-col justify-between min-h-[118px] relative overflow-hidden">
+            <div class="flex items-center justify-between">
+              <div class="w-9 h-9 rounded-2xl bg-[#cdf0e2] text-[#1da97b] flex items-center justify-center font-bold text-sm">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                </svg>
+              </div>
+              <button id="addAccountModalBtn" type="button" class="text-[11px] font-semibold text-[#1da97b] hover:underline">+ Счет</button>
+            </div>
+            <div class="mt-3">
+              <div class="text-xs font-medium text-gray-500">Кошелёк</div>
+              <div id="totalBalanceDisplay" class="text-lg font-extrabold tracking-tight text-gray-900 mt-0.5 truncate">₽ 0.00</div>
+            </div>
+          </div>
+
+          <!-- Right Peach Card: Расходы -->
+          <div class="rounded-[24px] p-4 bg-gradient-to-br from-[#fdf0ed] to-[#fef6f4] border border-[#f9ded8] flex flex-col justify-between min-h-[118px] relative overflow-hidden">
+            <div class="flex items-center justify-between">
+              <div class="w-9 h-9 rounded-2xl bg-[#fad9d2] text-[#e65a46] flex items-center justify-center font-bold text-sm">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+                </svg>
+              </div>
+              <button id="editMonthlyBudgetBtn" type="button" class="text-[11px] font-semibold text-[#e65a46] hover:underline">Лимит</button>
+            </div>
+            <div class="mt-3">
+              <div class="text-xs font-medium text-gray-500">Расходы</div>
+              <div id="monthExpenseDisplay" class="text-lg font-extrabold tracking-tight text-gray-900 mt-0.5 truncate">₽ 0.00</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Horizontal Pill Strip: Доход, Накоплено, На день + Счета -->
+        <div class="flex gap-2.5 overflow-x-auto no-scrollbar pb-1">
+          <!-- Pill: Доход -->
+          <div class="flex-shrink-0 rounded-2xl bg-[#f6f7f9] border border-gray-100 px-3.5 py-2.5 flex items-center gap-2.5">
+            <div class="w-7 h-7 rounded-full bg-[#e3f6ee] text-[#25b887] flex items-center justify-center text-xs font-bold">↓</div>
+            <div>
+              <div class="text-[11px] font-semibold text-gray-700 leading-none">Доход</div>
+              <div id="monthIncomeDisplay" class="text-[11px] font-medium text-gray-400 mt-0.5">₽ 0.00</div>
+            </div>
+          </div>
+
+          <!-- Pill: Накоплено -->
+          <button id="quickGoBottlesPill" type="button" class="flex-shrink-0 rounded-2xl bg-[#f6f7f9] hover:bg-gray-100 border border-gray-100 px-3.5 py-2.5 flex items-center gap-2.5 text-left transition">
+            <div class="w-7 h-7 rounded-full bg-[#fef3c7] text-[#d97706] flex items-center justify-center text-xs font-bold">★</div>
+            <div>
+              <div class="text-[11px] font-semibold text-gray-700 leading-none">Накоплено</div>
+              <div id="pillSavedDisplay" class="text-[11px] font-medium text-gray-400 mt-0.5">₽ 0.00</div>
+            </div>
+          </button>
+
+          <!-- Pill: Бюджет на день -->
+          <div class="flex-shrink-0 rounded-2xl bg-[#f6f7f9] border border-gray-100 px-3.5 py-2.5 flex items-center gap-2.5">
+            <div class="w-7 h-7 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center text-xs font-bold">⚡</div>
+            <div>
+              <div class="text-[11px] font-semibold text-gray-700 leading-none">На день</div>
+              <div id="dailySafeSpendDisplay" class="text-[11px] font-medium text-gray-400 mt-0.5">₽ 0.00</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Accounts Strip (Wallets filter) -->
+        <div class="flex items-center justify-between pt-0.5">
+          <div id="accountsStrip" class="flex gap-2 overflow-x-auto no-scrollbar"></div>
+          <button id="filterAllAccountsBtn" type="button" class="text-[11px] text-gray-400 hover:text-gray-700 ml-2 flex-shrink-0">Все</button>
+        </div>
+
+        <!-- Card: Статистика за месяц (3 Circular Progress Rings + Alert Pill) -->
+        <div class="rounded-[26px] card-soft p-4 space-y-3.5">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-gray-900">Статистика за месяц</h2>
+            <button id="moreStatsLinkBtn" type="button" class="text-xs font-medium text-gray-400 hover:text-gray-700 flex items-center gap-0.5">
+              <span>Подробнее</span>
+              <span>›</span>
+            </button>
+          </div>
+
+          <!-- 3 Rings Row -->
+          <div id="threeRingsContainer" class="grid grid-cols-3 gap-2 pt-1"></div>
+
+          <!-- Status Banner Pill (Like "Слишком много развлечений" in screenshot) -->
+          <div id="statsAlertBanner" class="rounded-2xl bg-[#fae6e6] px-3.5 py-2.5 flex items-center gap-2 text-xs font-semibold text-[#c83e3b]">
+            <span class="w-4 h-4 rounded-full bg-[#e04f4c] text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0">!</span>
+            <span id="statsAlertText" class="truncate">Пока всё по нулям — добавь первую запись</span>
+          </div>
+
+          <!-- Hidden Budget Progress Bar for compatibility & visual tracking -->
+          <div class="pt-1">
+            <div class="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+              <div id="monthlyBudgetBar" class="h-full bg-[#25b887] rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+            <div class="flex justify-between text-[10px] text-gray-400 mt-1">
+              <span id="budgetSpentText">Потрачено: ₽ 0</span>
+              <span id="budgetRemainingText">Лимит: ₽ 0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2 Feature Cards Grid: Бутылочки & Быстрый разбор -->
+        <div class="grid grid-cols-2 gap-3">
+          <button id="dashboardBottlesCardBtn" type="button" class="rounded-[24px] card-soft hover:bg-gray-100/80 p-4 text-left transition flex flex-col justify-between min-h-[115px] relative overflow-hidden">
+            <div class="flex items-center justify-between w-full">
+              <span class="text-sm font-bold text-gray-900">Бутылочки</span>
+              <span class="text-gray-400 text-xs">›</span>
+            </div>
+            <p class="text-[11px] text-gray-400 leading-snug mt-1">Сбережения на вашу мечту</p>
+            <div class="mt-2 flex items-center gap-1.5">
+              <span class="text-lg">🧪</span>
+              <span id="bottlesCountBadge" class="text-xs font-bold text-gray-700">0 целей</span>
+            </div>
+          </button>
+
+          <button id="dashboardVoiceCardBtn" type="button" class="rounded-[24px] card-soft hover:bg-gray-100/80 p-4 text-left transition flex flex-col justify-between min-h-[115px] relative overflow-hidden">
+            <div class="flex items-center justify-between w-full">
+              <span class="text-sm font-bold text-gray-900 flex items-center gap-1">🎙️ Голос / Текст</span>
+              <span class="text-gray-400 text-xs">›</span>
+            </div>
+            <p class="text-[11px] text-gray-400 leading-snug mt-1">Скажи или напиши «такси 450»</p>
+            <div class="mt-2">
+              <span class="inline-block px-2.5 py-0.5 rounded-full bg-[#e6f7f1] text-[#1da97b] text-[10px] font-bold">Распознавание</span>
+            </div>
+          </button>
+        </div>
+
+        <!-- Category Filter & Operations Feed -->
+        <div class="pt-1 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-gray-900">Последние платежи</h3>
+            <span id="activeFilterLabel" class="text-[11px] text-gray-400">0 записей</span>
+          </div>
+
+          <div id="categoryFilterChips" class="flex gap-1.5 overflow-x-auto no-scrollbar pb-1"></div>
+
+          <div class="flex items-center gap-2">
+            <div class="relative flex-1">
+              <input id="searchTxInput" type="text" placeholder="Поиск платежа..." class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl pl-8 pr-3 py-2 text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#25b887]" />
+              <span class="absolute left-2.5 top-2 text-gray-400 text-xs">🔍</span>
+            </div>
+            <select id="typeFilterSelect" class="bg-[#f6f7f9] border border-gray-200 rounded-2xl px-2.5 py-2 text-xs text-gray-700 focus:outline-none">
+              <option value="all">Все</option>
+              <option value="expense">Расходы</option>
+              <option value="income">Доходы</option>
+            </select>
+          </div>
+
+          <div id="transactionsList" class="space-y-2"></div>
+        </div>
+      </div>
+
+      <!-- VIEW 2: ANALYTICS (ОТЧЁТЫ) -->
+      <div id="view-analytics" class="hidden space-y-4">
+        <div class="rounded-[26px] card-soft p-4">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-sm font-bold text-gray-900">Расходы по категориям</h3>
+            <span id="analyticsTotalLabel" class="text-xs font-bold text-gray-500">₽ 0.00</span>
+          </div>
+          <div class="relative h-56 w-full flex items-center justify-center">
+            <canvas id="categoryDoughnutChart"></canvas>
+            <div id="emptyChartPlaceholder" class="text-xs text-gray-400 text-center">Пока всё по нулям — добавь первый расход</div>
+          </div>
+        </div>
+
+        <div class="rounded-[26px] card-soft p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-gray-900">Категории и лимиты</h3>
+            <button id="openAddCategoryModalBtn" type="button" class="text-xs font-bold text-[#25b887] hover:underline">+ Категория</button>
+          </div>
+          <div id="categoryBreakdownList" class="space-y-2.5"></div>
+        </div>
+      </div>
+
+      <!-- VIEW 3: BOTTLES / SAVINGS GOALS (БУТЫЛОЧКИ - 3rd Screen from reference) -->
+      <div id="view-bottles" class="hidden space-y-4">
+        <!-- Summary Header Card -->
+        <div class="rounded-[26px] card-soft p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-[11px] font-medium text-gray-400">Всего накоплено</div>
+              <div id="goalCurrentText" class="text-2xl font-extrabold text-gray-900 mt-0.5">₽ 0</div>
+            </div>
+            <div class="text-right">
+              <div class="text-[11px] font-medium text-gray-400">Бутылочки</div>
+              <div id="totalBottlesCountHeader" class="text-2xl font-extrabold text-gray-900 mt-0.5">0</div>
+            </div>
+          </div>
+
+          <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div id="goalProgressBar" class="h-full bg-[#f59e0b] rounded-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+
+          <div class="flex items-center justify-between text-[11px] text-gray-400">
+            <span id="goalPercentText">0%</span>
+            <span id="goalTargetText">Цель: ₽ 0</span>
+          </div>
+          <span id="goalTitleDisplay" class="hidden">Бутылочки</span>
+        </div>
+
+        <!-- Add Bottle Action Row -->
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Твои копилки-бутылочки</span>
+          <div class="flex gap-2">
+            <button id="depositGoalBtn" type="button" class="px-3 py-1.5 rounded-full bg-[#e6f7f1] text-[#1da97b] text-xs font-bold hover:bg-[#d5f2e8] transition">
+              + Пополнить
+            </button>
+            <button id="openAddBottleModalBtn" type="button" class="px-3 py-1.5 rounded-full bg-gray-900 text-white text-xs font-bold hover:bg-gray-800 transition">
+              + Новая бутылочка
+            </button>
+          </div>
+        </div>
+
+        <!-- 2x2 Grid of Visual SVG Bottles -->
+        <div id="bottlesGrid" class="grid grid-cols-2 gap-3"></div>
+      </div>
+
+      <!-- VIEW 4: ACCOUNT & BACKUP (АККАУНТ) -->
+      <div id="view-settings" class="hidden space-y-4">
+        <!-- Supabase Cloud Sync Setup Card -->
+        <div class="rounded-[26px] bg-gradient-to-br from-[#e8f8f2] to-[#f4fbf8] border border-[#cdeee0] p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-xl bg-[#25b887] text-white flex items-center justify-center font-extrabold text-xs">⚡</div>
+              <div>
+                <h3 class="text-sm font-extrabold text-gray-900">Облако Supabase (Мульти-девайс)</h3>
+                <p id="sbConnectionLabel" class="text-[11px] font-medium text-[#1da97b]">Ключи проекта вшиты — автоподключение активно</p>
+              </div>
+            </div>
+            <button id="openSqlModalBtn" type="button" class="px-2.5 py-1.5 rounded-xl bg-white border border-[#bde6d6] text-[11px] font-bold text-[#1da97b] hover:bg-[#e6f7f1] transition">
+              SQL-скрипт
+            </button>
+          </div>
+
+          <div class="space-y-2 pt-1">
+            <div>
+              <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Telegram ID / Логин</label>
+              <input id="sbUserIdInput" type="text" placeholder="Напр.: tg_123456789 или твой ник" class="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-900 focus:outline-none focus:border-[#25b887]" />
+            </div>
+
+            <div>
+              <label class="block text-[10px] font-bold uppercase tracking-wider text-[#1da97b] mb-1">🔒 Секретный пароль шифрования (AES-256 + защита БД)</label>
+              <input id="sbSecretPassInput" type="password" placeholder="Придумай личный пароль (только ты его знаешь)" class="w-full bg-white border border-[#bde6d6] rounded-xl px-3 py-2 text-xs font-bold text-gray-900 focus:outline-none focus:border-[#25b887]" />
+              <p class="text-[10px] text-gray-500 mt-0.5">Данные шифруются на устройстве по стандарту <b>AES-GCM 256</b> перед отправкой. В Supabase лежит только зашифрованный слепок, а строка защищена крипто-хешем.</p>
+            </div>
+
+            <div>
+              <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Supabase Project URL</label>
+              <input id="sbUrlInput" type="url" placeholder="https://xxxxxxxxxxxx.supabase.co" class="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#25b887]" />
+            </div>
+
+            <div>
+              <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Supabase Anon Public Key</label>
+              <input id="sbAnonKeyInput" type="password" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." class="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#25b887]" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 pt-1">
+            <button id="saveSupabaseConfigBtn" type="button" class="py-2.5 px-3 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-xs font-bold transition">
+              Подключить и синхр.
+            </button>
+            <button id="forcePullSupabaseBtn" type="button" class="py-2.5 px-3 rounded-xl bg-white border border-gray-200 hover:bg-gray-50 text-gray-800 text-xs font-bold transition">
+              🔄 Загрузить из БД
+            </button>
+          </div>
+          <div class="flex items-center justify-between text-[11px] text-gray-400 pt-1">
+            <span id="lastSyncTimeLabel">Последняя синхронизация: —</span>
+            <button id="disconnectSupabaseBtn" type="button" class="text-rose-500 hover:underline font-medium">Отключить</button>
+          </div>
+        </div>
+        <div class="rounded-[26px] card-soft p-4 space-y-3">
+          <h3 class="text-sm font-bold text-gray-900">Экспорт и управление данными</h3>
+          <p class="text-xs text-gray-500 leading-relaxed">
+            Все счета, категории и бутылочки по умолчанию обнулены и сохраняются прямо на твоем устройстве.
+          </p>
+          <div class="grid grid-cols-2 gap-2.5">
+            <button id="exportCsvBtn" type="button" class="py-2.5 px-3 rounded-2xl bg-white border border-gray-200 hover:bg-gray-50 text-xs font-bold text-gray-800 transition">
+              📊 Скачать CSV
+            </button>
+            <button id="copyJsonBackupBtn" type="button" class="py-2.5 px-3 rounded-2xl bg-white border border-gray-200 hover:bg-gray-50 text-xs font-bold text-gray-800 transition">
+              📋 Бэкап JSON
+            </button>
+          </div>
+          <div class="pt-3 border-t border-gray-200/70 flex items-center justify-between">
+            <button id="loadDemoDataBtn" type="button" class="text-xs font-semibold text-gray-500 hover:text-gray-800">Заполнить примером</button>
+            <button id="clearAllDataBtn" type="button" class="text-xs font-bold text-[#e65a46] hover:underline">Сбросить всё в 0 ₽</button>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- Bottom Pill Navigation + Floating Green "+" Button (Matches Reference Screen 1) -->
+    <div class="absolute bottom-4 left-4 right-4 z-30 flex items-center gap-2.5">
+      <nav class="flex-1 floating-nav rounded-full px-3 py-2 flex items-center justify-around border border-gray-100">
+        <button id="navHomeBtn" type="button" data-tab="home" class="nav-tab-btn flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-full text-gray-900 font-bold transition">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
+          <span class="text-[10px]">Дашборд</span>
+        </button>
+
+        <button id="navAnalyticsBtn" type="button" data-tab="analytics" class="nav-tab-btn flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-full text-gray-400 hover:text-gray-700 font-medium transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+          <span class="text-[10px]">Отчёты</span>
+        </button>
+
+        <button id="navBottlesBtn" type="button" data-tab="bottles" class="nav-tab-btn flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-full text-gray-400 hover:text-gray-700 font-medium transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+          <span class="text-[10px]">Бутылочки</span>
+        </button>
+
+        <button id="navSettingsBtn" type="button" data-tab="settings" class="nav-tab-btn flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-full text-gray-400 hover:text-gray-700 font-medium transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+          <span class="text-[10px]">Аккаунт</span>
+        </button>
+      </nav>
+
+      <!-- Green Circle FAB -->
+      <button id="openAddTxSheetBtn" type="button" class="w-14 h-14 rounded-full bg-[#25b887] hover:bg-[#1fa377] text-white shadow-lg shadow-[#25b887]/35 flex items-center justify-center text-3xl font-light active:scale-95 transition flex-shrink-0">
+        +
+      </button>
+    </div>
+
+    <!-- SCREEN 2 FROM REFERENCE: VOICE / SMART RECOGNITION MODAL -->
+    <div id="voiceModal" class="hidden fixed inset-0 z-50 bg-white flex flex-col justify-between p-6 sheet-enter">
+      <div class="flex items-center justify-between">
+        <button id="closeVoiceModalBtn" type="button" class="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-700 text-lg">✕</button>
+        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Умный ввод</span>
+        <div class="w-10"></div>
+      </div>
+
+      <div class="flex-1 flex flex-col items-center justify-center text-center max-w-xs mx-auto w-full space-y-5">
+        <button id="startSpeechBtn" type="button" class="w-20 h-20 rounded-full bg-[#d7f5ea] text-[#25b887] flex items-center justify-center mic-pulse transition">
+          <svg class="w-9 h-9" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 10v2a7 7 0 01-14 0v-2M12 19v4m-4 0h8"></path>
+          </svg>
+        </button>
+
+        <div>
+          <h3 class="text-xl font-extrabold text-gray-900">Распознавание голоса</h3>
+          <p class="text-xs text-gray-400 mt-1">Проверьте и подтвердите распознанные платежи или напишите фразу текстом</p>
+        </div>
+
+        <!-- Text / Voice Input Box -->
+        <div class="w-full">
+          <input id="smartParseInput" type="text" placeholder="Напр.: оплатила квартиру 35000" class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl px-4 py-3 text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#25b887] text-center" />
+        </div>
+
+        <!-- Recognized Payment Preview Card (Matches Reference Screen 2) -->
+        <div class="w-full text-left space-y-1.5">
+          <div class="text-xs font-bold text-gray-400">сегодня</div>
+          <div class="rounded-2xl bg-white border border-gray-200 shadow-xs p-3.5 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <span class="w-5 h-5 rounded-full bg-gray-900 text-white flex items-center justify-center text-[10px]">✓</span>
+              <div id="smartPreviewIcon" class="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center text-base">🏠</div>
+              <div class="min-w-0">
+                <div id="smartPreviewTitle" class="text-xs font-bold text-gray-900 truncate">Введите текст выше</div>
+                <div id="smartPreviewCategory" class="text-[11px] text-gray-400 truncate">Категория определится сама</div>
+              </div>
+            </div>
+            <div id="smartPreviewAmount" class="text-xs font-extrabold text-gray-900 flex-shrink-0">₽ 0</div>
+          </div>
+        </div>
+      </div>
+
+      <button id="confirmSmartTxBtn" type="button" class="w-full py-4 rounded-2xl bg-gray-900 hover:bg-gray-800 text-white font-bold text-sm transition">
+        Подтвердить 1 платеж(ей)
+      </button>
+    </div>
+
+    <!-- MODAL 1: ADD TRANSACTION BOTTOM SHEET -->
+    <div id="addTxModal" class="hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-end justify-center">
+      <div class="w-full max-w-md bg-white rounded-t-[32px] p-5 space-y-4 sheet-enter max-h-[92vh] overflow-y-auto shadow-2xl">
+        <div class="flex items-center justify-between">
+          <h3 class="text-base font-extrabold text-gray-900">Новая операция</h3>
+          <button id="closeAddTxModalBtn" type="button" class="w-8 h-8 rounded-full bg-gray-100 text-gray-500 hover:text-gray-900 flex items-center justify-center text-sm">✕</button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-1.5 bg-gray-100 p-1 rounded-2xl">
+          <button id="txTypeExpenseBtn" type="button" class="py-2 rounded-xl text-xs font-bold bg-white text-gray-900 shadow-xs transition">Расход</button>
+          <button id="txTypeIncomeBtn" type="button" class="py-2 rounded-xl text-xs font-bold text-gray-500 hover:text-gray-900 transition">Доход</button>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-medium text-gray-400 mb-1">Сумма (можно формулой: 450+320)</label>
+          <div class="relative">
+            <input id="txAmountInput" type="text" inputmode="decimal" placeholder="0" class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl px-4 py-3 text-2xl font-extrabold text-gray-900 focus:outline-none focus:border-[#25b887]" />
+            <span id="txModalCurrencyLabel" class="absolute right-4 top-3.5 text-lg font-bold text-gray-400">₽</span>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-medium text-gray-400 mb-1">Кошелёк / счет</label>
+          <select id="txAccountSelect" class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl px-3 py-2.5 text-xs font-semibold text-gray-800 focus:outline-none"></select>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-medium text-gray-400 mb-1.5">Категория</label>
+          <div id="txCategoryGrid" class="grid grid-cols-4 gap-2 max-h-44 overflow-y-auto no-scrollbar p-0.5"></div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2">
+          <div class="col-span-2">
+            <label class="block text-[11px] font-medium text-gray-400 mb-1">Комментарий</label>
+            <input id="txNoteInput" type="text" placeholder="Например: Продукты у дома" class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl px-3 py-2 text-xs text-gray-900 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-medium text-gray-400 mb-1">Дата</label>
+            <input id="txDateInput" type="date" class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl px-2 py-2 text-xs text-gray-900 focus:outline-none" />
+          </div>
+        </div>
+
+        <button id="saveTxBtn" type="button" class="w-full py-3.5 rounded-2xl bg-gray-900 hover:bg-gray-800 text-white font-bold text-sm transition">
+          Сохранить платеж
+        </button>
+      </div>
+    </div>
+
+    <!-- MODAL 2: ADD ACCOUNT -->
+    <div id="accountModal" class="hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+      <div class="w-full max-w-sm bg-white rounded-[28px] p-5 space-y-4 shadow-xl">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-extrabold text-gray-900">Новый счет / кошелёк</h3>
+          <button id="closeAccountModalBtn" type="button" class="text-gray-400 hover:text-gray-800 text-sm">✕</button>
+        </div>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-[11px] text-gray-400 mb-1">Название</label>
+            <input id="accNameInput" type="text" placeholder="Карта, Наличные, Сейф" class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl px-3 py-2 text-xs text-gray-900" />
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[11px] text-gray-400 mb-1">Начальный баланс</label>
+              <input id="accBalanceInput" type="number" step="any" placeholder="0" class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl px-3 py-2 text-xs text-gray-900" />
+            </div>
+            <div>
+              <label class="block text-[11px] text-gray-400 mb-1">Иконка</label>
+              <select id="accIconSelect" class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl px-3 py-2 text-xs text-gray-900">
+                <option value="💳">💳 Карта</option>
+                <option value="💵">💵 Наличные</option>
+                <option value="🏦">🏦 Вклад</option>
+                <option value="💎">💎 Крипта</option>
+              </select>
+            </div>
+          </div>
+          <button id="saveAccountBtn" type="button" class="w-full py-3 rounded-2xl bg-[#25b887] hover:bg-[#1fa377] text-white font-bold text-xs transition">
+            Создать счет
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 3: ADD CUSTOM CATEGORY -->
+    <div id="categoryModal" class="hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+      <div class="w-full max-w-sm bg-white rounded-[28px] p-5 space-y-4 shadow-xl">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-extrabold text-gray-900">Новая категория</h3>
+          <button id="closeCategoryModalBtn" type="button" class="text-gray-400 hover:text-gray-800 text-sm">✕</button>
+        </div>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-[11px] text-gray-400 mb-1">Название категории</label>
+            <input id="catNameInput" type="text" placeholder="Напр.: Спорт, Маркетплейсы" class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl px-3 py-2 text-xs text-gray-900" />
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[11px] text-gray-400 mb-1">Эмодзи</label>
+              <input id="catIconInput" type="text" value="🛍️" maxlength="2" class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl px-3 py-2 text-xs text-gray-900 text-center" />
+            </div>
+            <div>
+              <label class="block text-[11px] text-gray-400 mb-1">Лимит в месяц</label>
+              <input id="catLimitInput" type="number" placeholder="0" class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl px-3 py-2 text-xs text-gray-900" />
+            </div>
+          </div>
+          <button id="saveCategoryBtn" type="button" class="w-full py-3 rounded-2xl bg-[#25b887] hover:bg-[#1fa377] text-white font-bold text-xs transition">
+            Добавить категорию
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 4: ADD BOTTLE (НОВАЯ БУТЫЛОЧКА) -->
+    <div id="bottleModal" class="hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+      <div class="w-full max-w-sm bg-white rounded-[28px] p-5 space-y-4 shadow-xl">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-extrabold text-gray-900">Новая бутылочка-цель</h3>
+          <button id="closeBottleModalBtn" type="button" class="text-gray-400 hover:text-gray-800 text-sm">✕</button>
+        </div>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-[11px] text-gray-400 mb-1">На что копим?</label>
+            <input id="bottleTitleInput" type="text" placeholder="Напр.: Новый ноутбук, Отпуск, Машина" class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl px-3 py-2 text-xs text-gray-900" />
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[11px] text-gray-400 mb-1">Целевая сумма</label>
+              <input id="bottleTargetInput" type="number" placeholder="100000" class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl px-3 py-2 text-xs text-gray-900" />
+            </div>
+            <div>
+              <label class="block text-[11px] text-gray-400 mb-1">Иконка</label>
+              <input id="bottleIconInput" type="text" value="💻" maxlength="2" class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl px-3 py-2 text-xs text-gray-900 text-center" />
+            </div>
+          </div>
+          <button id="saveBottleBtn" type="button" class="w-full py-3 rounded-2xl bg-gray-900 hover:bg-gray-800 text-white font-bold text-xs transition">
+            Создать бутылочку
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 5: QUICK NUMBER PROMPT -->
+    <div id="quickPromptModal" class="hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+      <div class="w-full max-w-sm bg-white rounded-[28px] p-5 space-y-4 shadow-xl">
+        <div class="flex items-center justify-between">
+          <h3 id="quickPromptTitle" class="text-sm font-extrabold text-gray-900">Введите сумму</h3>
+          <button id="closeQuickPromptBtn" type="button" class="text-gray-400 hover:text-gray-800 text-sm">✕</button>
+        </div>
+        <div>
+          <input id="quickPromptInput" type="number" step="any" placeholder="0" class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl px-3 py-2.5 text-sm text-gray-900 font-bold" />
+        </div>
+        <button id="saveQuickPromptBtn" type="button" class="w-full py-3 rounded-2xl bg-[#25b887] hover:bg-[#1fa377] text-white font-bold text-xs transition">
+          Сохранить
+        </button>
+      </div>
+    </div>
+
+    <!-- MODAL 6: TELEGRAM MINI APP INFO -->
+    <div id="tmaInfoModal" class="hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+      <div class="w-full max-w-sm bg-white rounded-[28px] p-5 space-y-3 shadow-xl">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-extrabold text-gray-900">🤖 Запуск в Telegram (TMA)</h3>
+          <button id="closeTmaInfoModalBtn" type="button" class="text-gray-400 hover:text-gray-800 text-sm">✕</button>
+        </div>
+        <div class="text-xs text-gray-600 space-y-2 leading-relaxed">
+          <p>Все данные сейчас <b>чистые (по нулям)</b> и сохраняются автоматически на твоем устройстве.</p>
+          <ol class="list-decimal list-inside space-y-1 text-gray-500">
+            <li>Загрузи этот файл на GitHub Pages / Vercel.</li>
+            <li>В <b>@BotFather</b> открой <b>Bot Settings → Menu Button</b> и вставь ссылку.</li>
+          </ol>
+        </div>
+        <button id="gotItTmaBtn" type="button" class="w-full py-2.5 rounded-2xl bg-gray-900 text-white font-bold text-xs transition">
+          Понятно
+        </button>
+      </div>
+    </div>
+
+    <!-- MODAL 7: SUPABASE SQL SETUP & INSTRUCTIONS -->
+    <div id="sqlModal" class="hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+      <div class="w-full max-w-md bg-white rounded-[28px] p-5 space-y-3.5 shadow-2xl max-h-[88vh] overflow-y-auto">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-extrabold text-gray-900">⚡ Настройка базы в Supabase за 1 минуту</h3>
+          <button id="closeSqlModalBtn" type="button" class="w-8 h-8 rounded-full bg-gray-100 text-gray-500 hover:text-gray-900 flex items-center justify-center text-sm">✕</button>
+        </div>
+        <ol class="list-decimal list-inside text-xs text-gray-600 space-y-1.5 leading-relaxed">
+          <li>Создай бесплатный проект на <b>supabase.com</b>.</li>
+          <li>Слева в меню открой <b>SQL Editor → New Query</b>, вставь скрипт ниже и нажми <b>Run</b>:</li>
+        </ol>
+        <div class="relative">
+          <pre id="sqlCodeBlock" class="bg-gray-900 text-emerald-300 p-3 rounded-2xl text-[10px] overflow-x-auto leading-relaxed font-mono">-- 1. Таблица зашифрованных состояний
+create table if not exists public.vibecash_states (
+  user_id text primary key,
+  state_json jsonb not null,
+  updated_at timestamptz default now()
+);
+
+-- 2. Включаем жесткий Row Level Security (RLS)
+alter table public.vibecash_states enable row level security;
+drop policy if exists "Allow public sync by user_id" on public.vibecash_states;
+drop policy if exists "Vault header lock" on public.vibecash_states;
+
+-- 3. Запрещаем чтение/запись без точного крипто-токена в заголовке x-vault-key
+create policy "Vault header lock"
+  on public.vibecash_states
+  for all
+  using (
+    user_id = coalesce(
+      current_setting('request.headers', true)::json->>'x-vault-key',
+      ''
+    )
+  )
+  with check (
+    user_id = coalesce(
+      current_setting('request.headers', true)::json->>'x-vault-key',
+      ''
+    )
+  );</pre>
+          <button id="copySqlBtn" type="button" class="absolute top-2 right-2 px-2.5 py-1 rounded-lg bg-white/15 hover:bg-white/25 text-white text-[10px] font-bold transition">
+            Копировать SQL
+          </button>
+        </div>
+        <p class="text-[11px] text-gray-500 leading-relaxed">
+          3. Затем зайди в <b>Project Settings → API</b>, скопируй <b>Project URL</b> и <b>anon public key</b> в поля во вкладке «Аккаунт». После этого любое добавление расхода или бутылочки будет мгновенно улетать в облако и подтягиваться на всех твоих устройствах!
+        </p>
+        <button id="gotItSqlModalBtn" type="button" class="w-full py-3 rounded-2xl bg-[#25b887] hover:bg-[#1fa377] text-white font-bold text-xs transition">
+          Скопировать SQL и закрыть
+        </button>
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toastBanner" class="pointer-events-none opacity-0 transition-opacity duration-200 fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-gray-900 text-white px-4 py-2 rounded-full shadow-lg text-xs font-semibold">
+      <span id="toastMessage">Сохранено</span>
+    </div>
+
+  </div>
+
+  <script>
+    // --- ZEROED OUT DEFAULT STATE ---
+    const STORAGE_KEY = 'vibecash_light_zero_v2';
+    const CURRENCIES = [
+      { code: 'RUB', symbol: '₽', label: '₽ RUB' },
+      { code: 'USD', symbol: '$', label: '$ USD' },
+      { code: 'EUR', symbol: '€', label: '€ EUR' },
+      { code: 'USDT', symbol: '₮', label: '₮ USDT' }
+    ];
+
+    function getZeroState() {
+      return {
+        currencyIndex: 0,
+        monthlyBudget: 0,
+        selectedAccountId: 'all',
+        selectedCategoryId: 'all',
+        goal: {
+          title: 'Бутылочки',
+          current: 0,
+          target: 0
+        },
+        accounts: [
+          { id: 'acc_main', name: 'Основной счёт', icon: '💳', initialBalance: 0 },
+          { id: 'acc_cash', name: 'Наличные', icon: '💵', initialBalance: 0 }
+        ],
+        categories: [
+          { id: 'cat_fun', name: 'Развлечения', icon: '🎉', type: 'expense', color: '#ec4899', limit: 0 },
+          { id: 'cat_bills', name: 'Обязательные', icon: '🏠', type: 'expense', color: '#6366f1', limit: 0 },
+          { id: 'cat_save', name: 'Сбережения', icon: '🐷', type: 'expense', color: '#eab308', limit: 0 },
+          { id: 'cat_food', name: 'Продукты', icon: '🛒', type: 'expense', color: '#25b887', limit: 0 },
+          { id: 'cat_cafe', name: 'Кафе и рестораны', icon: '🍔', type: 'expense', color: '#f97316', limit: 0 },
+          { id: 'cat_taxi', name: 'Транспорт', icon: '🚕', type: 'expense', color: '#3b82f6', limit: 0 },
+          { id: 'cat_salary', name: 'Доход / Зарплата', icon: '💰', type: 'income', color: '#25b887', limit: 0 },
+          { id: 'cat_gift', name: 'Подработка / Перевод', icon: '✨', type: 'income', color: '#10b981', limit: 0 }
+        ],
+        bottles: [
+          { id: 'bot_1', title: 'Новый ноутбук', icon: '💻', current: 0, target: 0, color: '#1d4ed8', dateLabel: 'Без срока' },
+          { id: 'bot_2', title: 'Отпуск / Мечта', icon: '🌴', current: 0, target: 0, color: '#84cc16', dateLabel: 'Без срока' },
+          { id: 'bot_3', title: 'Крупная покупка', icon: '🚗', current: 0, target: 0, color: '#9d174d', dateLabel: 'Без срока' },
+          { id: 'bot_4', title: 'Подушка безопасности', icon: '💰', current: 0, target: 0, color: '#f59e0b', dateLabel: 'Без срока' }
+        ],
+        transactions: []
+      };
+    }
+
+    let state = loadState();
+    let currentTxModalType = 'expense';
+    let selectedModalCategoryId = 'cat_food';
+    let quickPromptCallback = null;
+    let doughnutChartInstance = null;
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && Array.isArray(parsed.accounts) && Array.isArray(parsed.transactions)) {
+            if (!Array.isArray(parsed.bottles)) parsed.bottles = getZeroState().bottles;
+            return parsed;
+          }
+        }
+      } catch (e) {}
+      return getZeroState();
+    }
+
+    const SB_CONFIG_KEY = 'vibecash_supabase_cfg_v1';
+    let supabaseClient = null;
+    let sbSyncTimer = null;
+
+    const DEVICE_UID_KEY = 'vibecash_unique_guest_id_v1';
+
+    function detectTelegramUser() {
+      try {
+        if (window.Telegram && window.Telegram.WebApp) {
+          window.Telegram.WebApp.ready();
+          window.Telegram.WebApp.expand();
+          const u = window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user;
+          if (u && u.id) {
+            return {
+              id: 'tg_' + String(u.id),
+              username: u.username ? '@' + u.username : (u.first_name || 'TG User')
+            };
+          }
+        }
+      } catch (e) {}
+      return null;
+    }
+
+    function getOrCreateIsolatedUserId() {
+      const tgUser = detectTelegramUser();
+      if (tgUser) return tgUser.id;
+      try {
+        let savedUid = localStorage.getItem(DEVICE_UID_KEY);
+        if (!savedUid || savedUid === 'my_vibecash_sync') {
+          const rnd = Math.random().toString(36).substring(2, 8) + Date.now().toString(36).slice(-4);
+          savedUid = 'user_' + rnd;
+          localStorage.setItem(DEVICE_UID_KEY, savedUid);
+        }
+        return savedUid;
+      } catch (e) {
+        return 'user_' + Math.random().toString(36).substring(2, 10);
+      }
+    }
+
+    function detectTelegramUserId() {
+      const tgUser = detectTelegramUser();
+      return tgUser ? tgUser.id : getOrCreateIsolatedUserId();
+    }
+
+    const DEFAULT_SB_URL = 'https://domubgxeescjzlnfsgfk.supabase.co';
+    const DEFAULT_SB_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvbXViZ3hlZXNjanpsbmZzZ2ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MzExODksImV4cCI6MjEwOTIwNzE4OX0.4N97ldzXyHypQa_2KO_kjPcTot1ubrkH1M4ho61jzsk';
+
+    function normalizeSupabaseUrl(rawUrl) {
+      if (!rawUrl) return '';
+      return String(rawUrl).trim().replace(/\/rest\/v1\/?$/i, '').replace(/\/+$/, '');
+    }
+
+    function loadSupabaseConfig() {
+      try {
+        const raw = localStorage.getItem(SB_CONFIG_KEY);
+        if (raw) {
+          const cfg = JSON.parse(raw);
+          if (cfg && typeof cfg === 'object') {
+            return {
+              url: normalizeSupabaseUrl(cfg.url) || DEFAULT_SB_URL,
+              anonKey: (cfg.anonKey && cfg.anonKey.trim()) ? cfg.anonKey.trim() : DEFAULT_SB_ANON_KEY,
+              userId: (cfg.userId && cfg.userId.trim()) ? cfg.userId.trim() : (detectTelegramUserId()),
+              secretPass: cfg.secretPass || ''
+            };
+          }
+        }
+      } catch (e) {}
+      return {
+        url: DEFAULT_SB_URL,
+        anonKey: DEFAULT_SB_ANON_KEY,
+        userId: detectTelegramUserId(),
+        secretPass: ''
+      };
+    }
+
+    // --- ZERO-KNOWLEDGE CRYPTO (SHA-256 VAULT ID + AES-GCM-256 E2EE) ---
+    async function computeVaultKeyId(userId, secretPass) {
+      const cleanUser = (userId || detectTelegramUserId()).trim();
+      const cleanPass = (secretPass || '').trim();
+      if (!cleanPass || !window.crypto || !window.crypto.subtle) {
+        return cleanUser;
+      }
+      const msgBuffer = new TextEncoder().encode(`vibecash_vault_v1::${cleanUser}::${cleanPass}`);
+      const hashBuffer = await window.crypto.subtle.digest('SHA-256', msgBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return 'vault_' + hashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 40);
+    }
+
+    async function deriveAesKey(userId, secretPass) {
+      const enc = new TextEncoder();
+      const keyMaterial = await window.crypto.subtle.importKey(
+        'raw',
+        enc.encode(secretPass.trim()),
+        { name: 'PBKDF2' },
+        false,
+        ['deriveKey']
+      );
+      return window.crypto.subtle.deriveKey(
+        {
+          name: 'PBKDF2',
+          salt: enc.encode('vibecash_salt_' + (userId || '').trim()),
+          iterations: 100000,
+          hash: 'SHA-256'
+        },
+        keyMaterial,
+        { name: 'AES-GCM', length: 256 },
+        false,
+        ['encrypt', 'decrypt']
+      );
+    }
+
+    async function encryptStatePayload(plainState, userId, secretPass) {
+      const pass = (secretPass || '').trim();
+      if (!pass || !window.crypto || !window.crypto.subtle) {
+        return plainState;
+      }
+      const key = await deriveAesKey(userId, pass);
+      const iv = window.crypto.getRandomValues(new Uint8Array(12));
+      const encoded = new TextEncoder().encode(JSON.stringify(plainState));
+      const cipherBuffer = await window.crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, encoded);
+      const ivB64 = btoa(String.fromCharCode(...iv));
+      const ctB64 = btoa(String.fromCharCode(...new Uint8Array(cipherBuffer)));
+      return {
+        __e2ee_v1: true,
+        alg: 'AES-GCM-256',
+        iv: ivB64,
+        ciphertext: ctB64
+      };
+    }
+
+    async function decryptStatePayload(payload, userId, secretPass) {
+      if (!payload || !payload.__e2ee_v1) {
+        return payload;
+      }
+      const pass = (secretPass || '').trim();
+      if (!pass) {
+        throw new Error('Требуется секретный пароль для расшифровки');
+      }
+      const key = await deriveAesKey(userId, pass);
+      const iv = Uint8Array.from(atob(payload.iv), c => c.charCodeAt(0));
+      const ct = Uint8Array.from(atob(payload.ciphertext), c => c.charCodeAt(0));
+      const plainBuffer = await window.crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
+      return JSON.parse(new TextDecoder().decode(plainBuffer));
+    }
+
+    let sbConfig = loadSupabaseConfig();
+
+    function saveSupabaseConfig(cfg) {
+      sbConfig = cfg;
+      try {
+        localStorage.setItem(SB_CONFIG_KEY, JSON.stringify(cfg));
+      } catch (e) {}
+    }
+
+    function updateSyncIndicator(status, message) {
+      const dot = document.getElementById('syncDot');
+      const shortText = document.getElementById('syncStatusShort');
+      const label = document.getElementById('sbConnectionLabel');
+      if (!dot || !shortText) return;
+
+      if (status === 'synced') {
+        dot.className = 'w-1.5 h-1.5 rounded-full bg-[#25b887]';
+        shortText.textContent = 'Supabase ✓';
+        if (label) label.textContent = message || 'Синхронизировано с Supabase';
+      } else if (status === 'syncing') {
+        dot.className = 'w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse';
+        shortText.textContent = 'Синхр...';
+        if (label) label.textContent = message || 'Сохранение в облако...';
+      } else if (status === 'error') {
+        dot.className = 'w-1.5 h-1.5 rounded-full bg-rose-500';
+        shortText.textContent = 'Ошибка БД';
+        if (label) label.textContent = message || 'Ошибка подключения к Supabase';
+      } else {
+        dot.className = 'w-1.5 h-1.5 rounded-full bg-gray-400';
+        shortText.textContent = 'Локально';
+        if (label) label.textContent = message || 'Не подключено — хранится на устройстве';
+      }
+    }
+
+    let activeVaultId = '';
+
+    async function initSupabaseClient() {
+      if (!sbConfig.url || !sbConfig.anonKey || !window.supabase) {
+        supabaseClient = null;
+        updateSyncIndicator('local');
+        return null;
+      }
+      try {
+        const cleanUrl = normalizeSupabaseUrl(sbConfig.url);
+        activeVaultId = await computeVaultKeyId(sbConfig.userId, sbConfig.secretPass);
+        supabaseClient = window.supabase.createClient(cleanUrl, sbConfig.anonKey.trim(), {
+          global: {
+            headers: {
+              'x-vault-key': activeVaultId
+            }
+          }
+        });
+        return supabaseClient;
+      } catch (e) {
+        supabaseClient = null;
+        updateSyncIndicator('error', 'Проверьте URL и Anon Key');
+        return null;
+      }
+    }
+
+    async function pushStateToSupabase() {
+      if (!supabaseClient || !sbConfig.userId) return;
+      updateSyncIndicator('syncing');
+      try {
+        const nowIso = new Date().toISOString();
+        state.updatedAt = nowIso;
+        if (!activeVaultId) {
+          activeVaultId = await computeVaultKeyId(sbConfig.userId, sbConfig.secretPass);
+        }
+        const encryptedPayload = await encryptStatePayload(state, sbConfig.userId, sbConfig.secretPass);
+        const { error } = await supabaseClient
+          .from('vibecash_states')
+          .upsert({
+            user_id: activeVaultId,
+            state_json: encryptedPayload,
+            updated_at: nowIso
+          }, { onConflict: 'user_id' });
+
+        if (error) {
+          updateSyncIndicator('error', 'Ошибка записи: ' + (error.message || 'проверьте SQL'));
+        } else {
+          const timeStr = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          const timeLabel = document.getElementById('lastSyncTimeLabel');
+          const modeTag = (sbConfig.secretPass && sbConfig.secretPass.trim()) ? '🔒 AES-256' : '☁️ Облако';
+          if (timeLabel) timeLabel.textContent = `Синхр. (${modeTag}): ${timeStr}`;
+          updateSyncIndicator('synced', `${modeTag} • Защищено`);
+        }
+      } catch (e) {
+        updateSyncIndicator('error', 'Сетевая ошибка при сохранении');
+      }
+    }
+
+    async function pullStateFromSupabase(showNotification = false) {
+      if (!supabaseClient || !sbConfig.userId) {
+        if (showNotification) showToast('Сначала укажите URL и Anon Key');
+        return;
+      }
+      updateSyncIndicator('syncing', 'Загрузка из Supabase...');
+      try {
+        if (!activeVaultId) {
+          activeVaultId = await computeVaultKeyId(sbConfig.userId, sbConfig.secretPass);
+        }
+        const { data, error } = await supabaseClient
+          .from('vibecash_states')
+          .select('state_json, updated_at')
+          .eq('user_id', activeVaultId)
+          .maybeSingle();
+
+        if (error) {
+          updateSyncIndicator('error', 'Ошибка чтения: выполните SQL-скрипт в Supabase');
+          if (showNotification) showToast('Выполните SQL-скрипт в Supabase');
+          return;
+        }
+
+        if (data && data.state_json) {
+          let unpacked = null;
+          try {
+            unpacked = await decryptStatePayload(data.state_json, sbConfig.userId, sbConfig.secretPass);
+          } catch (decErr) {
+            updateSyncIndicator('error', 'Неверный секретный пароль шифрования');
+            if (showNotification) showToast('Неверный секретный пароль 🔒');
+            return;
+          }
+          if (unpacked && Array.isArray(unpacked.accounts)) {
+            state = unpacked;
+            if (!Array.isArray(state.bottles)) state.bottles = getZeroState().bottles;
+            try {
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            } catch (e) {}
+            renderAll();
+            const timeStr = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const timeLabel = document.getElementById('lastSyncTimeLabel');
+            const modeTag = (sbConfig.secretPass && sbConfig.secretPass.trim()) ? '🔒 AES-256' : '☁️ Облако';
+            if (timeLabel) timeLabel.textContent = `Загружено (${modeTag}): ${timeStr}`;
+            updateSyncIndicator('synced', `${modeTag} • Защищено`);
+            if (showNotification) showToast('Данные расшифрованы и загружены 🔒');
+          }
+        } else {
+          await pushStateToSupabase();
+          if (showNotification) showToast('Защищенный сейф создан в Supabase 🔒');
+        }
+      } catch (e) {
+        updateSyncIndicator('error', 'Не удалось связаться с Supabase');
+        if (showNotification) showToast('Ошибка сети');
+      }
+    }
+
+    function saveState() {
+      state.updatedAt = new Date().toISOString();
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {}
+      if (supabaseClient && sbConfig.userId) {
+        clearTimeout(sbSyncTimer);
+        sbSyncTimer = setTimeout(() => {
+          pushStateToSupabase();
+        }, 350);
+      }
+    }
+
+    function getCurrencySymbol() {
+      return CURRENCIES[state.currencyIndex % CURRENCIES.length].symbol;
+    }
+
+    function formatMoney(num, withDecimals = false) {
+      const n = Number(num) || 0;
+      const sym = getCurrencySymbol();
+      if (withDecimals) {
+        const parts = n.toFixed(2).split('.');
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+        return `${sym} ${parts.join('.')}`;
+      }
+      const formatted = Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+      return `${sym} ${formatted}`;
+    }
+
+    function showToast(msg) {
+      const banner = document.getElementById('toastBanner');
+      document.getElementById('toastMessage').textContent = msg;
+      banner.classList.remove('opacity-0');
+      banner.classList.add('opacity-100');
+      setTimeout(() => {
+        banner.classList.remove('opacity-100');
+        banner.classList.add('opacity-0');
+      }, 2000);
+    }
+
+    function getAccountBalance(accId) {
+      const acc = state.accounts.find(a => a.id === accId);
+      if (!acc) return 0;
+      let bal = Number(acc.initialBalance) || 0;
+      for (const tx of state.transactions) {
+        if (tx.accountId === accId) {
+          bal += tx.type === 'income' ? Number(tx.amount) : -Number(tx.amount);
+        }
+      }
+      return bal;
+    }
+
+    function getTotalBalance() {
+      return state.accounts.reduce((sum, acc) => sum + getAccountBalance(acc.id), 0);
+    }
+
+    function getTotalSavedInBottles() {
+      return (state.bottles || []).reduce((sum, b) => sum + (Number(b.current) || 0), 0);
+    }
+
+    function getTotalTargetInBottles() {
+      return (state.bottles || []).reduce((sum, b) => sum + (Number(b.target) || 0), 0);
+    }
+
+    // --- RENDER EVERYTHING ---
+    function renderAll() {
+      const cur = CURRENCIES[state.currencyIndex % CURRENCIES.length];
+      document.getElementById('activeCurrencyBadge').textContent = cur.label;
+      document.getElementById('txModalCurrencyLabel').textContent = cur.symbol;
+
+      const totalBal = getTotalBalance();
+      document.getElementById('totalBalanceDisplay').textContent = formatMoney(totalBal, true);
+
+      let monthIncome = 0;
+      let monthExpense = 0;
+      for (const tx of state.transactions) {
+        if (state.selectedAccountId !== 'all' && tx.accountId !== state.selectedAccountId) continue;
+        if (tx.type === 'income') monthIncome += Number(tx.amount);
+        else monthExpense += Number(tx.amount);
+      }
+
+      document.getElementById('monthExpenseDisplay').textContent = formatMoney(monthExpense, true);
+      document.getElementById('monthIncomeDisplay').textContent = formatMoney(monthIncome, true);
+
+      const savedTotal = getTotalSavedInBottles();
+      document.getElementById('pillSavedDisplay').textContent = formatMoney(savedTotal, true);
+      document.getElementById('bottlesCountBadge').textContent = `${(state.bottles || []).length} шт.`;
+
+      // Safe spend per day
+      const now = new Date();
+      const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+      const daysLeft = Math.max(1, daysInMonth - now.getDate() + 1);
+      const budgetBase = state.monthlyBudget > 0 ? Math.max(0, state.monthlyBudget - monthExpense) : Math.max(0, totalBal);
+      const safePerDay = budgetBase > 0 ? Math.round(budgetBase / daysLeft) : 0;
+      document.getElementById('dailySafeSpendDisplay').textContent = formatMoney(safePerDay);
+
+      // Budget progress bar
+      const pct = state.monthlyBudget > 0 ? Math.min(100, Math.round((monthExpense / state.monthlyBudget) * 100)) : 0;
+      document.getElementById('monthlyBudgetBar').style.width = `${pct}%`;
+      document.getElementById('budgetSpentText').textContent = `Потрачено: ${formatMoney(monthExpense)}`;
+      document.getElementById('budgetRemainingText').textContent = `Лимит: ${formatMoney(state.monthlyBudget)}`;
+
+      renderAccountsStrip();
+      renderThreeRingsStats(monthExpense);
+      renderCategoryChips();
+      renderTransactionsList();
+      renderAnalytics();
+      renderBottlesView();
+    }
+
+    function renderAccountsStrip() {
+      const container = document.getElementById('accountsStrip');
+      container.innerHTML = '';
+
+      state.accounts.forEach(acc => {
+        const isSelected = state.selectedAccountId === acc.id;
+        const bal = getAccountBalance(acc.id);
+        const pill = document.createElement('div');
+        pill.className = `flex-shrink-0 px-3 py-1.5 rounded-full border text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition ${
+          isSelected
+            ? 'bg-gray-900 text-white border-gray-900'
+            : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+        }`;
+        pill.innerHTML = `
+          <span>${acc.icon}</span>
+          <span>${acc.name}:</span>
+          <span class="font-bold">${formatMoney(bal)}</span>
+          <button type="button" class="edit-acc-bal ml-1 text-[10px] opacity-60 hover:opacity-100" title="Изменить баланс">✎</button>
+        `;
+        pill.addEventListener('click', (e) => {
+          if (e.target.classList.contains('edit-acc-bal')) return;
+          state.selectedAccountId = state.selectedAccountId === acc.id ? 'all' : acc.id;
+          saveState();
+          renderAll();
+        });
+        pill.querySelector('.edit-acc-bal').addEventListener('click', (e) => {
+          e.stopPropagation();
+          document.getElementById('quickPromptTitle').textContent = `Начальный баланс (${acc.name})`;
+          document.getElementById('quickPromptInput').value = acc.initialBalance || 0;
+          quickPromptCallback = (val) => {
+            acc.initialBalance = val;
+            saveState();
+            renderAll();
+            showToast('Баланс счета обновлен');
+          };
+          document.getElementById('quickPromptModal').classList.remove('hidden');
+        });
+        container.appendChild(pill);
+      });
+    }
+
+    function renderThreeRingsStats(totalExpense) {
+      const container = document.getElementById('threeRingsContainer');
+      container.innerHTML = '';
+
+      const totalsByCat = {};
+      state.transactions.forEach(tx => {
+        if (tx.type === 'expense') {
+          totalsByCat[tx.categoryId] = (totalsByCat[tx.categoryId] || 0) + Number(tx.amount);
+        }
+      });
+
+      const expenseCats = state.categories.filter(c => c.type === 'expense');
+      const sorted = expenseCats.slice().sort((a, b) => (totalsByCat[b.id] || 0) - (totalsByCat[a.id] || 0));
+      const top3 = sorted.slice(0, 3);
+
+      top3.forEach(cat => {
+        const spent = totalsByCat[cat.id] || 0;
+        const pct = totalExpense > 0 ? Math.round((spent / totalExpense) * 100) : 0;
+        const radius = 28;
+        const circumference = 2 * Math.PI * radius;
+        const offset = circumference - (pct / 100) * circumference;
+
+        const item = document.createElement('div');
+        item.className = 'flex flex-col items-center text-center';
+        item.innerHTML = `
+          <div class="relative w-18 h-18 flex items-center justify-center">
+            <svg class="w-16 h-16 -rotate-90" viewBox="0 0 68 68">
+              <circle cx="34" cy="34" r="${radius}" stroke="#e5e7eb" stroke-width="6" fill="transparent"></circle>
+              <circle cx="34" cy="34" r="${radius}" stroke="${cat.color}" stroke-width="6" stroke-linecap="round" fill="transparent"
+                stroke-dasharray="${circumference.toFixed(1)}" stroke-dashoffset="${offset.toFixed(1)}"></circle>
+            </svg>
+            <span class="absolute text-xs font-extrabold text-gray-900">${pct}%</span>
+          </div>
+          <span class="text-[11px] font-medium text-gray-500 mt-1 line-clamp-2 leading-tight">${cat.name}</span>
+        `;
+        container.appendChild(item);
+      });
+
+      const alertBanner = document.getElementById('statsAlertBanner');
+      const alertText = document.getElementById('statsAlertText');
+      if (totalExpense === 0) {
+        alertBanner.className = 'rounded-2xl bg-gray-100 px-3.5 py-2.5 flex items-center gap-2 text-xs font-semibold text-gray-500';
+        alertText.textContent = 'Все показатели на нуле — начни вести свой бюджет';
+      } else {
+        const topCat = top3[0];
+        const topPct = Math.round(((totalsByCat[topCat.id] || 0) / totalExpense) * 100);
+        if (topPct >= 40) {
+          alertBanner.className = 'rounded-2xl bg-[#fae6e6] px-3.5 py-2.5 flex items-center gap-2 text-xs font-semibold text-[#c83e3b]';
+          alertText.textContent = `Больше всего уходит на: ${topCat.name} (${topPct}%)`;
+        } else {
+          alertBanner.className = 'rounded-2xl bg-[#e6f7f1] px-3.5 py-2.5 flex items-center gap-2 text-xs font-semibold text-[#1da97b]';
+          alertText.textContent = 'Расходы распределены равномерно';
+        }
+      }
+    }
+
+    function renderCategoryChips() {
+      const container = document.getElementById('categoryFilterChips');
+      container.innerHTML = '';
+
+      const allChip = document.createElement('button');
+      allChip.type = 'button';
+      const isAll = state.selectedCategoryId === 'all';
+      allChip.className = `flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition ${
+        isAll ? 'bg-gray-900 text-white' : 'bg-[#f6f7f9] text-gray-600 hover:bg-gray-200'
+      }`;
+      allChip.textContent = 'Все';
+      allChip.addEventListener('click', () => {
+        state.selectedCategoryId = 'all';
+        saveState();
+        renderAll();
+      });
+      container.appendChild(allChip);
+
+      state.categories.forEach(cat => {
+        const active = state.selectedCategoryId === cat.id;
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = `flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition flex items-center gap-1 ${
+          active ? 'bg-gray-900 text-white' : 'bg-[#f6f7f9] text-gray-600 hover:bg-gray-200'
+        }`;
+        chip.innerHTML = `<span>${cat.icon}</span><span>${cat.name}</span>`;
+        chip.addEventListener('click', () => {
+          state.selectedCategoryId = state.selectedCategoryId === cat.id ? 'all' : cat.id;
+          saveState();
+          renderAll();
+        });
+        container.appendChild(chip);
+      });
+    }
+
+    function renderTransactionsList() {
+      const list = document.getElementById('transactionsList');
+      const query = (document.getElementById('searchTxInput').value || '').trim().toLowerCase();
+      const typeFilter = document.getElementById('typeFilterSelect').value;
+
+      const filtered = state.transactions.filter(tx => {
+        if (state.selectedAccountId !== 'all' && tx.accountId !== state.selectedAccountId) return false;
+        if (state.selectedCategoryId !== 'all' && tx.categoryId !== state.selectedCategoryId) return false;
+        if (typeFilter !== 'all' && tx.type !== typeFilter) return false;
+        if (query) {
+          const cat = state.categories.find(c => c.id === tx.categoryId);
+          const hay = `${tx.note || ''} ${cat ? cat.name : ''}`.toLowerCase();
+          if (!hay.includes(query)) return false;
+        }
+        return true;
+      });
+
+      document.getElementById('activeFilterLabel').textContent = `${filtered.length} платежей`;
+      list.innerHTML = '';
+
+      if (filtered.length === 0) {
+        list.innerHTML = `
+          <div class="rounded-[24px] card-soft p-6 text-center space-y-1.5">
+            <div class="text-2xl">🌱</div>
+            <div class="text-xs font-bold text-gray-800">Чистый лист — всё по нулям</div>
+            <div class="text-[11px] text-gray-400">Нажми зелёную кнопку «+» внизу или иконку микрофона сверху, чтобы добавить свою первую операцию</div>
+          </div>
+        `;
+        return;
+      }
+
+      filtered.forEach(tx => {
+        const cat = state.categories.find(c => c.id === tx.categoryId) || { name: 'Категория', icon: '📌', color: '#64748b' };
+        const acc = state.accounts.find(a => a.id === tx.accountId) || { name: 'Счёт', icon: '💳' };
+        const isIncome = tx.type === 'income';
+
+        const item = document.createElement('div');
+        item.className = 'rounded-2xl bg-white border border-gray-100 shadow-2xs p-3.5 flex items-center justify-between gap-3';
+        item.innerHTML = `
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-10 h-10 rounded-2xl flex items-center justify-center text-lg flex-shrink-0" style="background-color: ${cat.color}18">
+              ${cat.icon}
+            </div>
+            <div class="min-w-0">
+              <div class="text-xs font-bold text-gray-900 truncate">${tx.note || cat.name}</div>
+              <div class="text-[11px] text-gray-400 truncate">${cat.name} • ${acc.name}</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <div class="text-right">
+              <div class="text-xs font-extrabold ${isIncome ? 'text-[#25b887]' : 'text-gray-900'}">
+                ${isIncome ? '+' : '-'}${formatMoney(tx.amount)}
+              </div>
+              <div class="text-[10px] text-gray-400">${tx.date || ''}</div>
+            </div>
+            <button type="button" class="del-tx-btn w-7 h-7 rounded-full bg-gray-100 hover:bg-rose-100 text-gray-400 hover:text-rose-600 flex items-center justify-center text-xs transition" title="Удалить">
+              ✕
+            </button>
+          </div>
+        `;
+
+        item.querySelector('.del-tx-btn').addEventListener('click', () => {
+          state.transactions = state.transactions.filter(t => t.id !== tx.id);
+          saveState();
+          renderAll();
+          showToast('Платеж удален');
+        });
+
+        list.appendChild(item);
+      });
+    }
+
+    function renderAnalytics() {
+      const expenseCategories = state.categories.filter(c => c.type === 'expense');
+      const totalsByCat = {};
+      let grandTotalExpense = 0;
+
+      expenseCategories.forEach(c => { totalsByCat[c.id] = 0; });
+      state.transactions.forEach(tx => {
+        if (tx.type === 'expense') {
+          if (state.selectedAccountId !== 'all' && tx.accountId !== state.selectedAccountId) return;
+          totalsByCat[tx.categoryId] = (totalsByCat[tx.categoryId] || 0) + Number(tx.amount);
+          grandTotalExpense += Number(tx.amount);
+        }
+      });
+
+      document.getElementById('analyticsTotalLabel').textContent = formatMoney(grandTotalExpense, true);
+
+      const activeCats = expenseCategories.filter(c => totalsByCat[c.id] > 0);
+      const canvas = document.getElementById('categoryDoughnutChart');
+      const emptyPlaceholder = document.getElementById('emptyChartPlaceholder');
+
+      if (activeCats.length === 0) {
+        canvas.classList.add('hidden');
+        emptyPlaceholder.classList.remove('hidden');
+      } else {
+        canvas.classList.remove('hidden');
+        emptyPlaceholder.classList.add('hidden');
+
+        const labels = activeCats.map(c => `${c.icon} ${c.name}`);
+        const data = activeCats.map(c => totalsByCat[c.id]);
+        const colors = activeCats.map(c => c.color || '#25b887');
+
+        if (doughnutChartInstance) {
+          doughnutChartInstance.data.labels = labels;
+          doughnutChartInstance.data.datasets[0].data = data;
+          doughnutChartInstance.data.datasets[0].backgroundColor = colors;
+          doughnutChartInstance.update();
+        } else if (typeof Chart !== 'undefined') {
+          doughnutChartInstance = new Chart(canvas, {
+            type: 'doughnut',
+            data: {
+              labels,
+              datasets: [{
+                data,
+                backgroundColor: colors,
+                borderColor: '#ffffff',
+                borderWidth: 3,
+                hoverOffset: 5
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              cutout: '68%',
+              plugins: {
+                legend: {
+                  position: 'bottom',
+                  labels: { color: '#374151', font: { size: 11, family: 'Inter' }, boxWidth: 10, padding: 10 }
+                }
+              }
+            }
+          });
+        }
+      }
+
+      const breakdownContainer = document.getElementById('categoryBreakdownList');
+      breakdownContainer.innerHTML = '';
+
+      expenseCategories.forEach(cat => {
+        const spent = totalsByCat[cat.id] || 0;
+        const limit = Number(cat.limit) || 0;
+        const pct = limit > 0 ? Math.min(100, Math.round((spent / limit) * 100)) : (grandTotalExpense > 0 ? Math.round((spent / grandTotalExpense) * 100) : 0);
+
+        const row = document.createElement('div');
+        row.className = 'p-3 rounded-2xl bg-white border border-gray-100 space-y-1.5';
+        row.innerHTML = `
+          <div class="flex items-center justify-between text-xs">
+            <div class="flex items-center gap-2 font-bold text-gray-800">
+              <span>${cat.icon}</span>
+              <span>${cat.name}</span>
+            </div>
+            <div class="text-right">
+              <span class="font-extrabold text-gray-900">${formatMoney(spent)}</span>
+              ${limit > 0 ? `<span class="text-[11px] text-gray-400"> / ${formatMoney(limit)}</span>` : ''}
+            </div>
+          </div>
+          <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div class="h-full rounded-full transition-all duration-300" style="width: ${pct}%; background-color: ${cat.color}"></div>
+          </div>
+        `;
+        breakdownContainer.appendChild(row);
+      });
+    }
+
+    // --- RENDER BOTTLES VIEW (3rd Screen in Reference) ---
+    function renderBottlesView() {
+      const bottles = state.bottles || [];
+      const totalSaved = getTotalSavedInBottles();
+      const totalTarget = getTotalTargetInBottles();
+      const overallPct = totalTarget > 0 ? Math.min(100, Math.round((totalSaved / totalTarget) * 100)) : 0;
+
+      document.getElementById('goalCurrentText').textContent = formatMoney(totalSaved);
+      document.getElementById('totalBottlesCountHeader').textContent = String(bottles.length);
+      document.getElementById('goalProgressBar').style.width = `${overallPct}%`;
+      document.getElementById('goalPercentText').textContent = `${overallPct}%`;
+      document.getElementById('goalTargetText').textContent = `Цель: ${formatMoney(totalTarget)}`;
+
+      const grid = document.getElementById('bottlesGrid');
+      grid.innerHTML = '';
+
+      bottles.forEach((bot, idx) => {
+        const cur = Number(bot.current) || 0;
+        const target = Number(bot.target) || 0;
+        const fillPct = target > 0 ? Math.min(100, Math.round((cur / target) * 100)) : (cur > 0 ? 50 : 0);
+        // Calculate liquid level inside the SVG bottle (y from 108 down to 44)
+        const liquidHeight = Math.round((fillPct / 100) * 62);
+        const liquidY = 108 - liquidHeight;
+        const clipId = `bottleClip_${idx}`;
+
+        const card = document.createElement('div');
+        card.className = 'rounded-[24px] card-soft p-3.5 flex flex-col items-center text-center justify-between relative group';
+        card.innerHTML = `
+          <button type="button" class="del-bottle-btn absolute top-2.5 right-2.5 w-6 h-6 rounded-full bg-white/80 hover:bg-rose-50 text-gray-400 hover:text-rose-500 text-[10px] flex items-center justify-center" title="Удалить">✕</button>
+          <div class="mt-1">
+            <div class="text-xs font-extrabold text-gray-900 leading-tight">${bot.icon} ${bot.title}</div>
+            <div class="text-[10px] text-gray-400 mt-0.5">${target > 0 ? 'Цель: ' + formatMoney(target) : 'Без лимита'}</div>
+          </div>
+
+          <!-- SVG Bottle with Cork & Dynamic Liquid Fill -->
+          <div class="my-2 cursor-pointer bottle-tap-area" title="Нажми, чтобы пополнить или изменить">
+            <svg width="86" height="118" viewBox="0 0 86 118" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <clipPath id="${clipId}">
+                  <circle cx="43" cy="77" r="30" />
+                </clipPath>
+              </defs>
+              <!-- Cork -->
+              <rect x="36" y="12" width="14" height="10" rx="2" fill="#8B5A2B" />
+              <!-- Bottle Neck -->
+              <rect x="33" y="20" width="20" height="6" rx="2" fill="#d1d5db" />
+              <path d="M35 26 H51 L54 48 H32 L35 26 Z" fill="#f3f4f6" stroke="#e5e7eb" stroke-width="1.5" />
+              <!-- Bottle Round Body -->
+              <circle cx="43" cy="77" r="31" fill="#ffffff" stroke="#e5e7eb" stroke-width="2" />
+              <!-- Liquid Inside -->
+              <g clip-path="url(#${clipId})">
+                <rect x="10" y="${liquidY}" width="66" height="${liquidHeight + 6}" fill="${bot.color || '#25b887'}" rx="4" />
+              </g>
+              <!-- Glass Highlight -->
+              <path d="M22 65 A24 24 0 0 1 32 52" stroke="white" stroke-width="2.5" stroke-linecap="round" opacity="0.7" />
+            </svg>
+          </div>
+
+          <div class="w-full space-y-1.5">
+            <div class="text-sm font-extrabold text-gray-900">${formatMoney(cur)}</div>
+            <button type="button" class="bottle-action-btn w-full py-1.5 px-2.5 rounded-full bg-[#e0f2fe] hover:bg-[#bae6fd] text-[#0284c7] text-[10px] font-bold transition flex items-center justify-center gap-1">
+              <span>💧 Пополнить (${fillPct}%)</span>
+            </button>
+          </div>
+        `;
+
+        const openBottlePrompt = () => {
+          document.getElementById('quickPromptTitle').textContent = `${bot.title}: сколько сейчас в бутылочке?`;
+          document.getElementById('quickPromptInput').value = bot.current || 0;
+          quickPromptCallback = (val) => {
+            bot.current = Math.max(0, val);
+            if (!bot.target || bot.target < bot.current) {
+              bot.target = Math.max(bot.target || 0, bot.current);
+            }
+            saveState();
+            renderAll();
+            showToast('Бутылочка обновлена');
+          };
+          document.getElementById('quickPromptModal').classList.remove('hidden');
+        };
+
+        card.querySelector('.bottle-tap-area').addEventListener('click', openBottlePrompt);
+        card.querySelector('.bottle-action-btn').addEventListener('click', openBottlePrompt);
+        card.querySelector('.del-bottle-btn').addEventListener('click', (e) => {
+          e.stopPropagation();
+          state.bottles = state.bottles.filter(b => b.id !== bot.id);
+          saveState();
+          renderAll();
+          showToast('Бутылочка удалена');
+        });
+
+        grid.appendChild(card);
+      });
+    }
+
+    // --- VOICE / SMART PARSER LOGIC (Screen 2) ---
+    function parseSmartPhrase(text) {
+      const raw = (text || '').trim();
+      if (!raw) {
+        return { title: 'Введите фразу или сумму', amount: 0, category: state.categories[0] };
+      }
+      const numMatch = raw.match(/(\d+[\d\s.,]*)/);
+      let amount = 0;
+      let cleanTitle = raw;
+      if (numMatch) {
+        amount = parseFloat(numMatch[1].replace(/\s+/g, '').replace(',', '.')) || 0;
+        cleanTitle = raw.replace(numMatch[0], '').trim() || 'Платёж';
+      }
+
+      const lower = raw.toLowerCase();
+      let matchedCat = state.categories.find(c => c.type === 'expense') || state.categories[0];
+
+      if (/(квартир|жкх|коммунал|аренд|свет|интернет)/.test(lower)) {
+        matchedCat = state.categories.find(c => c.id === 'cat_bills') || matchedCat;
+      } else if (/(продукт|еда|супермаркет|магнит|пятерочк|вкусвилл|хлеб|молок)/.test(lower)) {
+        matchedCat = state.categories.find(c => c.id === 'cat_food') || matchedCat;
+      } else if (/(кафе|кофе|ресторан|пицц|бургер|доставк|обед|ужин)/.test(lower)) {
+        matchedCat = state.categories.find(c => c.id === 'cat_cafe') || matchedCat;
+      } else if (/(такси|метро|бензин|автобус|проезд|каршеринг)/.test(lower)) {
+        matchedCat = state.categories.find(c => c.id === 'cat_taxi') || matchedCat;
+      } else if (/(кино|игр|бар|клуб|концерт|развлеч)/.test(lower)) {
+        matchedCat = state.categories.find(c => c.id === 'cat_fun') || matchedCat;
+      } else if (/(копил|отлож|сбереж)/.test(lower)) {
+        matchedCat = state.categories.find(c => c.id === 'cat_save') || matchedCat;
+      }
+
+      return { title: cleanTitle, amount, category: matchedCat };
+    }
+
+    function updateSmartPreview() {
+      const val = document.getElementById('smartParseInput').value;
+      const parsed = parseSmartPhrase(val);
+      document.getElementById('smartPreviewIcon').textContent = parsed.category ? parsed.category.icon : '💸';
+      document.getElementById('smartPreviewTitle').textContent = parsed.title;
+      document.getElementById('smartPreviewCategory').textContent = parsed.category ? parsed.category.name : 'Расход';
+      document.getElementById('smartPreviewAmount').textContent = `- ${formatMoney(parsed.amount)}`;
+    }
+
+    // --- ADD TX MODAL HELPERS ---
+    function openAddTxModal() {
+      const modal = document.getElementById('addTxModal');
+      modal.classList.remove('hidden');
+      document.getElementById('txAmountInput').value = '';
+      document.getElementById('txNoteInput').value = '';
+      document.getElementById('txDateInput').value = new Date().toISOString().slice(0, 10);
+
+      const accSelect = document.getElementById('txAccountSelect');
+      accSelect.innerHTML = '';
+      state.accounts.forEach(acc => {
+        const opt = document.createElement('option');
+        opt.value = acc.id;
+        opt.textContent = `${acc.icon} ${acc.name} (${formatMoney(getAccountBalance(acc.id))})`;
+        accSelect.appendChild(opt);
+      });
+      if (state.selectedAccountId !== 'all') {
+        accSelect.value = state.selectedAccountId;
+      }
+
+      setTxModalType('expense');
+      setTimeout(() => document.getElementById('txAmountInput').focus(), 80);
+    }
+
+    function setTxModalType(type) {
+      currentTxModalType = type;
+      const expBtn = document.getElementById('txTypeExpenseBtn');
+      const incBtn = document.getElementById('txTypeIncomeBtn');
+      if (type === 'expense') {
+        expBtn.className = 'py-2 rounded-xl text-xs font-bold bg-white text-gray-900 shadow-xs transition';
+        incBtn.className = 'py-2 rounded-xl text-xs font-bold text-gray-500 hover:text-gray-900 transition';
+      } else {
+        incBtn.className = 'py-2 rounded-xl text-xs font-bold bg-white text-[#25b887] shadow-xs transition';
+        expBtn.className = 'py-2 rounded-xl text-xs font-bold text-gray-500 hover:text-gray-900 transition';
+      }
+
+      const availableCats = state.categories.filter(c => c.type === type);
+      if (availableCats.length > 0) {
+        selectedModalCategoryId = availableCats[0].id;
+      }
+      renderModalCategoryGrid();
+    }
+
+    function renderModalCategoryGrid() {
+      const grid = document.getElementById('txCategoryGrid');
+      grid.innerHTML = '';
+      const cats = state.categories.filter(c => c.type === currentTxModalType);
+
+      cats.forEach(cat => {
+        const active = cat.id === selectedModalCategoryId;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-1 transition ${
+          active
+            ? 'bg-[#e6f7f1] border-[#25b887] text-gray-900 font-bold'
+            : 'bg-[#f6f7f9] border-transparent text-gray-600 hover:bg-gray-200/70'
+        }`;
+        btn.innerHTML = `
+          <span class="text-xl">${cat.icon}</span>
+          <span class="text-[10px] truncate w-full text-center">${cat.name}</span>
+        `;
+        btn.addEventListener('click', () => {
+          selectedModalCategoryId = cat.id;
+          renderModalCategoryGrid();
+        });
+        grid.appendChild(btn);
+      });
+    }
+
+    function evaluateMathInput(raw) {
+      const cleaned = String(raw).replace(/,/g, '.').replace(/[^0-9.+\-*/]/g, '');
+      if (!cleaned) return 0;
+      try {
+        const tokens = cleaned.split(/([+\-*/])/);
+        let total = parseFloat(tokens[0]) || 0;
+        for (let i = 1; i < tokens.length; i += 2) {
+          const op = tokens[i];
+          const val = parseFloat(tokens[i + 1]) || 0;
+          if (op === '+') total += val;
+          else if (op === '-') total -= val;
+          else if (op === '*') total *= val;
+          else if (op === '/' && val !== 0) total /= val;
+        }
+        return Math.round(total * 100) / 100;
+      } catch (e) {
+        return parseFloat(cleaned) || 0;
+      }
+    }
+
+    function switchTab(target) {
+      const views = {
+        home: { el: 'view-home', title: 'Дашборд' },
+        analytics: { el: 'view-analytics', title: 'Отчёты' },
+        bottles: { el: 'view-bottles', title: 'Бутылочки' },
+        settings: { el: 'view-settings', title: 'Аккаунт' }
+      };
+      Object.keys(views).forEach(k => {
+        const v = document.getElementById(views[k].el);
+        if (k === target) v.classList.remove('hidden');
+        else v.classList.add('hidden');
+      });
+      if (views[target]) {
+        document.getElementById('headerSubtitle').textContent = views[target].title;
+      }
+      document.querySelectorAll('.nav-tab-btn').forEach(b => {
+        if (b.getAttribute('data-tab') === target) {
+          b.classList.remove('text-gray-400', 'font-medium');
+          b.classList.add('text-gray-900', 'font-bold');
+        } else {
+          b.classList.remove('text-gray-900', 'font-bold');
+          b.classList.add('text-gray-400', 'font-medium');
+        }
+      });
+      if (target === 'analytics') renderAnalytics();
+      if (target === 'bottles') renderBottlesView();
+    }
+
+    // --- WIRE ALL CONTROLS ---
+    window.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => switchTab(btn.getAttribute('data-tab')));
+      });
+
+      document.getElementById('moreStatsLinkBtn').addEventListener('click', () => switchTab('analytics'));
+      document.getElementById('dashboardBottlesCardBtn').addEventListener('click', () => switchTab('bottles'));
+      document.getElementById('quickGoBottlesPill').addEventListener('click', () => switchTab('bottles'));
+
+      // Voice / Smart Modal
+      const openVoice = () => {
+        document.getElementById('smartParseInput').value = '';
+        updateSmartPreview();
+        document.getElementById('voiceModal').classList.remove('hidden');
+        setTimeout(() => document.getElementById('smartParseInput').focus(), 80);
+      };
+      document.getElementById('openVoiceModalBtn').addEventListener('click', openVoice);
+      document.getElementById('dashboardVoiceCardBtn').addEventListener('click', openVoice);
+      document.getElementById('closeVoiceModalBtn').addEventListener('click', () => {
+        document.getElementById('voiceModal').classList.add('hidden');
+      });
+      document.getElementById('smartParseInput').addEventListener('input', updateSmartPreview);
+
+      document.getElementById('startSpeechBtn').addEventListener('click', () => {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+          try {
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'ru-RU';
+            recognition.onresult = (event) => {
+              const transcript = event.results[0][0].transcript;
+              document.getElementById('smartParseInput').value = transcript;
+              updateSmartPreview();
+            };
+            recognition.onerror = () => {
+              showToast('Напишите фразу в поле ниже');
+            };
+            recognition.start();
+            showToast('Говорите...');
+          } catch (e) {
+            showToast('Введите фразу в текстовое поле');
+          }
+        } else {
+          showToast('Введите фразу текстом, например: такси 650');
+          document.getElementById('smartParseInput').focus();
+        }
+      });
+
+      document.getElementById('confirmSmartTxBtn').addEventListener('click', () => {
+        const parsed = parseSmartPhrase(document.getElementById('smartParseInput').value);
+        if (!parsed.amount || parsed.amount <= 0) {
+          showToast('Укажите сумму платежа (например: кофе 350)');
+          return;
+        }
+        const firstAcc = state.accounts[0] ? state.accounts[0].id : 'acc_main';
+        state.transactions.unshift({
+          id: 'tx_' + Date.now(),
+          type: 'expense',
+          amount: parsed.amount,
+          accountId: firstAcc,
+          categoryId: parsed.category ? parsed.category.id : 'cat_food',
+          note: parsed.title,
+          date: new Date().toISOString().slice(0, 10)
+        });
+        saveState();
+        document.getElementById('voiceModal').classList.add('hidden');
+        renderAll();
+        showToast('Платеж распознан и добавлен');
+      });
+
+      // Currency toggle
+      document.getElementById('currencyToggleBtn').addEventListener('click', () => {
+        state.currencyIndex = (state.currencyIndex + 1) % CURRENCIES.length;
+        saveState();
+        renderAll();
+        showToast(`Валюта: ${CURRENCIES[state.currencyIndex].label}`);
+      });
+
+      // Reset account filter
+      document.getElementById('filterAllAccountsBtn').addEventListener('click', () => {
+        state.selectedAccountId = 'all';
+        state.selectedCategoryId = 'all';
+        saveState();
+        renderAll();
+        showToast('Показаны все счета');
+      });
+
+      // Search & Filter
+      document.getElementById('searchTxInput').addEventListener('input', renderTransactionsList);
+      document.getElementById('typeFilterSelect').addEventListener('change', renderTransactionsList);
+
+      // Add Transaction Sheet
+      document.getElementById('openAddTxSheetBtn').addEventListener('click', openAddTxModal);
+      document.getElementById('closeAddTxModalBtn').addEventListener('click', () => {
+        document.getElementById('addTxModal').classList.add('hidden');
+      });
+      document.getElementById('txTypeExpenseBtn').addEventListener('click', () => setTxModalType('expense'));
+      document.getElementById('txTypeIncomeBtn').addEventListener('click', () => setTxModalType('income'));
+
+      document.getElementById('saveTxBtn').addEventListener('click', () => {
+        const amount = evaluateMathInput(document.getElementById('txAmountInput').value);
+        if (!amount || amount <= 0) {
+          showToast('Введите сумму больше 0');
+          return;
+        }
+        const accountId = document.getElementById('txAccountSelect').value;
+        const note = document.getElementById('txNoteInput').value.trim();
+        const date = document.getElementById('txDateInput').value || new Date().toISOString().slice(0, 10);
+
+        state.transactions.unshift({
+          id: 'tx_' + Date.now(),
+          type: currentTxModalType,
+          amount,
+          accountId,
+          categoryId: selectedModalCategoryId,
+          note,
+          date
+        });
+
+        saveState();
+        document.getElementById('addTxModal').classList.add('hidden');
+        renderAll();
+        showToast('Запись сохранена');
+      });
+
+      // Add Account Modal
+      document.getElementById('addAccountModalBtn').addEventListener('click', () => {
+        document.getElementById('accNameInput').value = '';
+        document.getElementById('accBalanceInput').value = '';
+        document.getElementById('accountModal').classList.remove('hidden');
+      });
+      document.getElementById('closeAccountModalBtn').addEventListener('click', () => {
+        document.getElementById('accountModal').classList.add('hidden');
+      });
+      document.getElementById('saveAccountBtn').addEventListener('click', () => {
+        const name = document.getElementById('accNameInput').value.trim();
+        const bal = parseFloat(document.getElementById('accBalanceInput').value) || 0;
+        const icon = document.getElementById('accIconSelect').value;
+        if (!name) {
+          showToast('Введите название счета');
+          return;
+        }
+        state.accounts.push({
+          id: 'acc_' + Date.now(),
+          name,
+          icon,
+          initialBalance: bal
+        });
+        saveState();
+        document.getElementById('accountModal').classList.add('hidden');
+        renderAll();
+        showToast('Счет добавлен');
+      });
+
+      // Add Category Modal
+      document.getElementById('openAddCategoryModalBtn').addEventListener('click', () => {
+        document.getElementById('catNameInput').value = '';
+        document.getElementById('catLimitInput').value = '';
+        document.getElementById('categoryModal').classList.remove('hidden');
+      });
+      document.getElementById('closeCategoryModalBtn').addEventListener('click', () => {
+        document.getElementById('categoryModal').classList.add('hidden');
+      });
+      document.getElementById('saveCategoryBtn').addEventListener('click', () => {
+        const name = document.getElementById('catNameInput').value.trim();
+        const icon = document.getElementById('catIconInput').value.trim() || '🏷️';
+        const limit = parseFloat(document.getElementById('catLimitInput').value) || 0;
+        if (!name) {
+          showToast('Введите название категории');
+          return;
+        }
+        const palette = ['#25b887', '#ec4899', '#6366f1', '#eab308', '#f97316', '#06b6d4'];
+        state.categories.push({
+          id: 'cat_' + Date.now(),
+          name,
+          icon,
+          type: 'expense',
+          color: palette[state.categories.length % palette.length],
+          limit
+        });
+        saveState();
+        document.getElementById('categoryModal').classList.add('hidden');
+        renderAll();
+        showToast('Категория создана');
+      });
+
+      // Add Bottle Modal
+      document.getElementById('openAddBottleModalBtn').addEventListener('click', () => {
+        document.getElementById('bottleTitleInput').value = '';
+        document.getElementById('bottleTargetInput').value = '';
+        document.getElementById('bottleModal').classList.remove('hidden');
+      });
+      document.getElementById('closeBottleModalBtn').addEventListener('click', () => {
+        document.getElementById('bottleModal').classList.add('hidden');
+      });
+      document.getElementById('saveBottleBtn').addEventListener('click', () => {
+        const title = document.getElementById('bottleTitleInput').value.trim();
+        const target = parseFloat(document.getElementById('bottleTargetInput').value) || 0;
+        const icon = document.getElementById('bottleIconInput').value.trim() || '🧪';
+        if (!title) {
+          showToast('Укажите название цели');
+          return;
+        }
+        const colors = ['#1d4ed8', '#84cc16', '#9d174d', '#f59e0b', '#25b887', '#7c3aed'];
+        state.bottles.push({
+          id: 'bot_' + Date.now(),
+          title,
+          icon,
+          current: 0,
+          target,
+          color: colors[state.bottles.length % colors.length],
+          dateLabel: 'В процессе'
+        });
+        saveState();
+        document.getElementById('bottleModal').classList.add('hidden');
+        renderAll();
+        showToast('Бутылочка создана');
+      });
+
+      // Edit Monthly Budget & Deposit Goal
+      document.getElementById('editMonthlyBudgetBtn').addEventListener('click', () => {
+        document.getElementById('quickPromptTitle').textContent = 'Лимит расходов на месяц';
+        document.getElementById('quickPromptInput').value = state.monthlyBudget || 0;
+        quickPromptCallback = (val) => {
+          state.monthlyBudget = Math.max(0, val);
+          saveState();
+          renderAll();
+          showToast('Лимит сохранен');
+        };
+        document.getElementById('quickPromptModal').classList.remove('hidden');
+      });
+
+      document.getElementById('depositGoalBtn').addEventListener('click', () => {
+        if (!state.bottles || state.bottles.length === 0) {
+          showToast('Сначала создайте бутылочку');
+          return;
+        }
+        const firstBottle = state.bottles[0];
+        document.getElementById('quickPromptTitle').textContent = `Пополнить «${firstBottle.title}» на сумму:`;
+        document.getElementById('quickPromptInput').value = '';
+        quickPromptCallback = (val) => {
+          if (val > 0) {
+            firstBottle.current = (Number(firstBottle.current) || 0) + val;
+            saveState();
+            renderAll();
+            showToast('Бутылочка пополнена');
+          }
+        };
+        document.getElementById('quickPromptModal').classList.remove('hidden');
+      });
+
+      document.getElementById('closeQuickPromptBtn').addEventListener('click', () => {
+        document.getElementById('quickPromptModal').classList.add('hidden');
+      });
+      document.getElementById('saveQuickPromptBtn').addEventListener('click', () => {
+        const val = parseFloat(document.getElementById('quickPromptInput').value) || 0;
+        if (quickPromptCallback) quickPromptCallback(val);
+        document.getElementById('quickPromptModal').classList.add('hidden');
+      });
+
+      // TMA Info Modal
+      document.getElementById('openTmaCodeBtn').addEventListener('click', () => {
+        document.getElementById('tmaInfoModal').classList.remove('hidden');
+      });
+      document.getElementById('closeTmaInfoModalBtn').addEventListener('click', () => {
+        document.getElementById('tmaInfoModal').classList.add('hidden');
+      });
+      document.getElementById('gotItTmaBtn').addEventListener('click', () => {
+        document.getElementById('tmaInfoModal').classList.add('hidden');
+      });
+
+      // Export CSV & JSON
+      document.getElementById('exportCsvBtn').addEventListener('click', () => {
+        const headers = ['Дата', 'Тип', 'Категория', 'Счет', 'Сумма', 'Комментарий'];
+        const rows = state.transactions.map(tx => {
+          const cat = state.categories.find(c => c.id === tx.categoryId);
+          const acc = state.accounts.find(a => a.id === tx.accountId);
+          return [
+            tx.date,
+            tx.type === 'income' ? 'Доход' : 'Расход',
+            cat ? cat.name : '',
+            acc ? acc.name : '',
+            tx.amount,
+            `"${(tx.note || '').replace(/"/g, '""')}"`
+          ].join(';');
+        });
+        const csvContent = '\uFEFF' + [headers.join(';'), ...rows].join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `finance_export_${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showToast('CSV скачан');
+      });
+
+      document.getElementById('copyJsonBackupBtn').addEventListener('click', () => {
+        const json = JSON.stringify(state, null, 2);
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = json;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+          showToast('JSON скопирован');
+        } catch (e) {
+          showToast('Ошибка копирования');
+        }
+      });
+
+      document.getElementById('loadDemoDataBtn').addEventListener('click', () => {
+        const today = new Date().toISOString().slice(0, 10);
+        state = getZeroState();
+        state.accounts[0].initialBalance = 57584.03;
+        state.monthlyBudget = 120000;
+        state.bottles[0].current = 75000; state.bottles[0].target = 150000;
+        state.bottles[1].current = 170000; state.bottles[1].target = 250000;
+        state.transactions = [
+          { id: 'd1', type: 'expense', amount: 18500, accountId: 'acc_main', categoryId: 'cat_fun', note: 'Выходные и концерты', date: today },
+          { id: 'd2', type: 'expense', amount: 12000, accountId: 'acc_main', categoryId: 'cat_bills', note: 'Коммунальные услуги', date: today },
+          { id: 'd3', type: 'expense', amount: 8000, accountId: 'acc_main', categoryId: 'cat_save', note: 'В копилку', date: today }
+        ];
+        saveState();
+        renderAll();
+        showToast('Загружен пример');
+      });
+
+      document.getElementById('clearAllDataBtn').addEventListener('click', () => {
+        state = getZeroState();
+        saveState();
+        renderAll();
+        showToast('Всё сброшено в 0 ₽');
+      });
+
+      // Supabase UI wiring
+      const tgDetected = detectTelegramUserId();
+      if (tgDetected && (!sbConfig.userId || sbConfig.userId === 'my_vibecash_sync')) {
+        sbConfig.userId = tgDetected;
+      }
+      document.getElementById('sbUserIdInput').value = sbConfig.userId || detectTelegramUserId();
+      document.getElementById('sbSecretPassInput').value = sbConfig.secretPass || '';
+      document.getElementById('sbUrlInput').value = sbConfig.url || '';
+      document.getElementById('sbAnonKeyInput').value = sbConfig.anonKey || '';
+
+      document.getElementById('headerSyncPillBtn').addEventListener('click', () => {
+        switchTab('settings');
+      });
+
+      document.getElementById('saveSupabaseConfigBtn').addEventListener('click', async () => {
+        const userId = document.getElementById('sbUserIdInput').value.trim() || detectTelegramUserId();
+        const secretPass = document.getElementById('sbSecretPassInput').value.trim();
+        const url = normalizeSupabaseUrl(document.getElementById('sbUrlInput').value);
+        document.getElementById('sbUrlInput').value = url;
+        const anonKey = document.getElementById('sbAnonKeyInput').value.trim();
+        if (!url || !anonKey) {
+          showToast('Заполните Project URL и Anon Key');
+          return;
+        }
+        saveSupabaseConfig({ userId, secretPass, url, anonKey });
+        const client = await initSupabaseClient();
+        if (client) {
+          await pullStateFromSupabase(true);
+        }
+      });
+
+      document.getElementById('forcePullSupabaseBtn').addEventListener('click', async () => {
+        if (!supabaseClient) await initSupabaseClient();
+        await pullStateFromSupabase(true);
+      });
+
+      document.getElementById('disconnectSupabaseBtn').addEventListener('click', () => {
+        saveSupabaseConfig({ userId: sbConfig.userId || detectTelegramUserId(), url: '', anonKey: '' });
+        document.getElementById('sbUrlInput').value = '';
+        document.getElementById('sbAnonKeyInput').value = '';
+        supabaseClient = null;
+        updateSyncIndicator('local');
+        showToast('Supabase отключен');
+      });
+
+      // SQL Modal wiring
+      document.getElementById('openSqlModalBtn').addEventListener('click', () => {
+        document.getElementById('sqlModal').classList.remove('hidden');
+      });
+      document.getElementById('closeSqlModalBtn').addEventListener('click', () => {
+        document.getElementById('sqlModal').classList.add('hidden');
+      });
+
+      const copySqlHelper = () => {
+        const sqlText = document.getElementById('sqlCodeBlock').textContent;
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = sqlText;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+          showToast('SQL-скрипт скопирован');
+        } catch (e) {
+          showToast('Не удалось скопировать');
+        }
+      };
+      document.getElementById('copySqlBtn').addEventListener('click', copySqlHelper);
+      document.getElementById('gotItSqlModalBtn').addEventListener('click', () => {
+        copySqlHelper();
+        document.getElementById('sqlModal').classList.add('hidden');
+      });
+
+      renderAll();
+
+      // Auto-connect to Supabase if credentials are saved
+      if (sbConfig.url && sbConfig.anonKey) {
+        initSupabaseClient().then(client => {
+          if (client) pullStateFromSupabase(false);
+        });
+      }
+    });
+  </script>
+</body>
+</html>
