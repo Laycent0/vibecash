@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Дашборд — Финансы TMA</title>
+  <meta name="theme-color" content="#ffffff" />
+  <title>Дашборд — Финансы TMA v3</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -30,14 +31,14 @@
     * { -webkit-tap-highlight-color: transparent; }
     body {
       font-family: 'Inter', sans-serif;
-      background-color: #eef1f5;
+      background-color: #e5e9f0;
       color: #111827;
-      overflow-x: hidden;
+      overflow: hidden;
     }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     .floating-nav {
-      background: rgba(255, 255, 255, 0.92);
+      background: rgba(255, 255, 255, 0.94);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       box-shadow: 0 10px 30px -5px rgba(17, 24, 39, 0.08), 0 4px 12px -2px rgba(17, 24, 39, 0.04);
@@ -69,30 +70,27 @@
   <div class="w-full max-w-md h-[100dvh] sm:h-[90dvh] sm:max-h-[880px] bg-white sm:rounded-[40px] sm:border-[6px] sm:border-white shadow-2xl flex flex-col relative overflow-hidden">
 
     <!-- Top Bar -->
-    <header class="px-5 pt-4 pb-2 flex items-center justify-between bg-white sticky top-0 z-20">
-      <div>
-        <div class="flex items-center gap-2">
-          <h1 id="headerSubtitle" class="text-2xl font-extrabold tracking-tight text-gray-900">Дашборд</h1>
-          <button id="headerSyncPillBtn" type="button" class="px-2 py-0.5 rounded-full bg-gray-100 text-[10px] font-bold text-gray-500 flex items-center gap-1 transition" title="Статус синхронизации Supabase">
-            <span id="syncDot" class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
-            <span id="syncStatusShort">Локально</span>
-          </button>
-        </div>
+    <header class="px-5 pt-4 pb-2 flex items-center justify-between bg-white sticky top-0 z-20 border-b border-gray-50">
+      <div class="flex items-center gap-2 min-w-0">
+        <h1 id="headerSubtitle" class="text-2xl font-extrabold tracking-tight text-gray-900 truncate">Дашборд</h1>
+        <button id="headerSyncPillBtn" type="button" class="px-2 py-0.5 rounded-full bg-gray-100 text-[10px] font-bold text-gray-500 flex items-center gap-1 transition flex-shrink-0" title="Статус облачной синхронизации">
+          <span id="syncDot" class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+          <span id="syncStatusShort">Облако</span>
+        </button>
+        <span id="offlineBadge" class="hidden px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold">Офлайн</span>
       </div>
-      <div class="flex items-center gap-2">
-        <button id="currencyToggleBtn" type="button" class="px-3 py-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-xs font-bold text-gray-700 transition" title="Сменить валюту">
+      <div class="flex items-center gap-1.5 flex-shrink-0">
+        <button id="currencyToggleBtn" type="button" class="px-2.5 py-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-xs font-bold text-gray-700 transition" title="Сменить валюту">
           <span id="activeCurrencyBadge">₽ RUB</span>
         </button>
-        <button id="openVoiceModalBtn" type="button" class="w-9 h-9 rounded-full bg-[#e6f7f1] hover:bg-[#d5f2e8] text-[#25b887] flex items-center justify-center transition" title="Голосовой / быстрый ввод">
+        <button id="openVoiceModalBtn" type="button" class="w-9 h-9 rounded-full bg-[#e6f7f1] hover:bg-[#d5f2e8] text-[#25b887] flex items-center justify-center transition" title="Голосовой / умный ввод">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"></path>
             <path stroke-linecap="round" stroke-linejoin="round" d="M19 10v2a7 7 0 01-14 0v-2M12 19v4m-4 0h8"></path>
           </svg>
         </button>
-        <button id="openTmaCodeBtn" type="button" class="w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center transition" title="Уведомления и подключение к Telegram">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
-          </svg>
+        <button id="openOnboardingBtn" type="button" class="w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center transition text-xs font-bold" title="Быстрый старт / Онбординг">
+          ?
         </button>
       </div>
     </header>
@@ -102,6 +100,15 @@
 
       <!-- VIEW 1: DASHBOARD (ДАШБОРД) -->
       <div id="view-home" class="space-y-4">
+
+        <!-- Category Budget Exceeded Notification Banner (Feature 5) -->
+        <div id="categoryLimitAlertBox" class="hidden rounded-2xl bg-rose-50 border border-rose-200 p-3 space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-extrabold text-rose-700 flex items-center gap-1.5">⚠️ Внимание по лимитам категорий</span>
+            <button id="goLimitsFromAlertBtn" type="button" class="text-[11px] font-bold text-rose-600 hover:underline">Все лимиты ›</button>
+          </div>
+          <div id="categoryLimitAlertList" class="text-[11px] text-rose-600 space-y-0.5"></div>
+        </div>
 
         <!-- 2 Big Pastel Hero Cards: Кошелёк & Расходы -->
         <div class="grid grid-cols-2 gap-3">
@@ -138,9 +145,8 @@
           </div>
         </div>
 
-        <!-- Horizontal Pill Strip: Доход, Накоплено, На день + Счета -->
+        <!-- Horizontal Pill Strip: Доход, Накоплено, На день, Подписки -->
         <div class="flex gap-2.5 overflow-x-auto no-scrollbar pb-1">
-          <!-- Pill: Доход -->
           <div class="flex-shrink-0 rounded-2xl bg-[#f6f7f9] border border-gray-100 px-3.5 py-2.5 flex items-center gap-2.5">
             <div class="w-7 h-7 rounded-full bg-[#e3f6ee] text-[#25b887] flex items-center justify-center text-xs font-bold">↓</div>
             <div>
@@ -149,7 +155,6 @@
             </div>
           </div>
 
-          <!-- Pill: Накоплено -->
           <button id="quickGoBottlesPill" type="button" class="flex-shrink-0 rounded-2xl bg-[#f6f7f9] hover:bg-gray-100 border border-gray-100 px-3.5 py-2.5 flex items-center gap-2.5 text-left transition">
             <div class="w-7 h-7 rounded-full bg-[#fef3c7] text-[#d97706] flex items-center justify-center text-xs font-bold">★</div>
             <div>
@@ -158,7 +163,6 @@
             </div>
           </button>
 
-          <!-- Pill: Бюджет на день -->
           <div class="flex-shrink-0 rounded-2xl bg-[#f6f7f9] border border-gray-100 px-3.5 py-2.5 flex items-center gap-2.5">
             <div class="w-7 h-7 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center text-xs font-bold">⚡</div>
             <div>
@@ -166,12 +170,21 @@
               <div id="dailySafeSpendDisplay" class="text-[11px] font-medium text-gray-400 mt-0.5">₽ 0.00</div>
             </div>
           </div>
+
+          <button id="openSubscriptionsModalBtn" type="button" class="flex-shrink-0 rounded-2xl bg-[#f6f7f9] hover:bg-gray-100 border border-gray-100 px-3.5 py-2.5 flex items-center gap-2.5 text-left transition">
+            <div class="w-7 h-7 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-xs font-bold">↻</div>
+            <div>
+              <div class="text-[11px] font-semibold text-gray-700 leading-none">Подписки</div>
+              <div id="pillSubsDisplay" class="text-[11px] font-medium text-gray-400 mt-0.5">0 активных</div>
+            </div>
+          </button>
         </div>
 
-        <!-- Accounts Strip (Wallets filter) -->
-        <div class="flex items-center justify-between pt-0.5">
-          <div id="accountsStrip" class="flex gap-2 overflow-x-auto no-scrollbar"></div>
-          <button id="filterAllAccountsBtn" type="button" class="text-[11px] text-gray-400 hover:text-gray-700 ml-2 flex-shrink-0">Все</button>
+        <!-- Accounts Strip (Wallets filter + Quick Transfer button) -->
+        <div class="flex items-center justify-between pt-0.5 gap-2">
+          <div id="accountsStrip" class="flex gap-2 overflow-x-auto no-scrollbar flex-1"></div>
+          <button id="quickTransferBtn" type="button" class="text-[11px] font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1.5 rounded-full flex-shrink-0 transition" title="Перевод между счетами">⇄ Перевод</button>
+          <button id="filterAllAccountsBtn" type="button" class="text-[11px] text-gray-400 hover:text-gray-700 flex-shrink-0">Все</button>
         </div>
 
         <!-- Card: Статистика за месяц (3 Circular Progress Rings + Alert Pill) -->
@@ -184,16 +197,13 @@
             </button>
           </div>
 
-          <!-- 3 Rings Row -->
           <div id="threeRingsContainer" class="grid grid-cols-3 gap-2 pt-1"></div>
 
-          <!-- Status Banner Pill (Like "Слишком много развлечений" in screenshot) -->
-          <div id="statsAlertBanner" class="rounded-2xl bg-[#fae6e6] px-3.5 py-2.5 flex items-center gap-2 text-xs font-semibold text-[#c83e3b]">
-            <span class="w-4 h-4 rounded-full bg-[#e04f4c] text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0">!</span>
+          <div id="statsAlertBanner" class="rounded-2xl bg-gray-100 px-3.5 py-2.5 flex items-center gap-2 text-xs font-semibold text-gray-500">
+            <span class="w-4 h-4 rounded-full bg-gray-400 text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0">!</span>
             <span id="statsAlertText" class="truncate">Пока всё по нулям — добавь первую запись</span>
           </div>
 
-          <!-- Hidden Budget Progress Bar for compatibility & visual tracking -->
           <div class="pt-1">
             <div class="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
               <div id="monthlyBudgetBar" class="h-full bg-[#25b887] rounded-full transition-all duration-300" style="width: 0%"></div>
@@ -205,62 +215,106 @@
           </div>
         </div>
 
-        <!-- 2 Feature Cards Grid: Бутылочки & Быстрый разбор -->
-        <div class="grid grid-cols-2 gap-3">
-          <button id="dashboardBottlesCardBtn" type="button" class="rounded-[24px] card-soft hover:bg-gray-100/80 p-4 text-left transition flex flex-col justify-between min-h-[115px] relative overflow-hidden">
+        <!-- 3 Feature Cards Grid: Бутылочки, Подписки, Импорт банков -->
+        <div class="grid grid-cols-3 gap-2.5">
+          <button id="dashboardBottlesCardBtn" type="button" class="rounded-[22px] card-soft hover:bg-gray-100/80 p-3 text-left transition flex flex-col justify-between min-h-[100px]">
             <div class="flex items-center justify-between w-full">
-              <span class="text-sm font-bold text-gray-900">Бутылочки</span>
+              <span class="text-xs font-bold text-gray-900">Бутылочки</span>
               <span class="text-gray-400 text-xs">›</span>
             </div>
-            <p class="text-[11px] text-gray-400 leading-snug mt-1">Сбережения на вашу мечту</p>
-            <div class="mt-2 flex items-center gap-1.5">
-              <span class="text-lg">🧪</span>
-              <span id="bottlesCountBadge" class="text-xs font-bold text-gray-700">0 целей</span>
+            <p class="text-[10px] text-gray-400 leading-snug mt-1">Копилки на цели</p>
+            <div class="mt-2 flex items-center gap-1">
+              <span class="text-sm">🧪</span>
+              <span id="bottlesCountBadge" class="text-[11px] font-bold text-gray-700">0 шт.</span>
             </div>
           </button>
 
-          <button id="dashboardVoiceCardBtn" type="button" class="rounded-[24px] card-soft hover:bg-gray-100/80 p-4 text-left transition flex flex-col justify-between min-h-[115px] relative overflow-hidden">
+          <button id="dashboardSubsCardBtn" type="button" class="rounded-[22px] card-soft hover:bg-gray-100/80 p-3 text-left transition flex flex-col justify-between min-h-[100px]">
             <div class="flex items-center justify-between w-full">
-              <span class="text-sm font-bold text-gray-900 flex items-center gap-1">🎙️ Голос / Текст</span>
+              <span class="text-xs font-bold text-gray-900">Подписки</span>
               <span class="text-gray-400 text-xs">›</span>
             </div>
-            <p class="text-[11px] text-gray-400 leading-snug mt-1">Скажи или напиши «такси 450»</p>
+            <p class="text-[10px] text-gray-400 leading-snug mt-1">Аренда, связь, VPN</p>
             <div class="mt-2">
-              <span class="inline-block px-2.5 py-0.5 rounded-full bg-[#e6f7f1] text-[#1da97b] text-[10px] font-bold">Распознавание</span>
+              <span id="subsCardBadge" class="inline-block px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 text-[10px] font-bold">Регулярные</span>
+            </div>
+          </button>
+
+          <button id="dashboardImportCardBtn" type="button" class="rounded-[22px] card-soft hover:bg-gray-100/80 p-3 text-left transition flex flex-col justify-between min-h-[100px]">
+            <div class="flex items-center justify-between w-full">
+              <span class="text-xs font-bold text-gray-900">Импорт CSV</span>
+              <span class="text-gray-400 text-xs">›</span>
+            </div>
+            <p class="text-[10px] text-gray-400 leading-snug mt-1">Т-Банк, Сбер выписки</p>
+            <div class="mt-2">
+              <span class="inline-block px-2 py-0.5 rounded-full bg-[#e6f7f1] text-[#1da97b] text-[10px] font-bold">Авторазбор</span>
             </div>
           </button>
         </div>
 
-        <!-- Category Filter & Operations Feed -->
+        <!-- Category Filter & Extended Search / Filters (Feature 4) -->
         <div class="pt-1 space-y-2.5">
           <div class="flex items-center justify-between">
-            <h3 class="text-sm font-bold text-gray-900">Последние платежи</h3>
-            <span id="activeFilterLabel" class="text-[11px] text-gray-400">0 записей</span>
+            <h3 class="text-sm font-bold text-gray-900">Операции</h3>
+            <div class="flex items-center gap-2">
+              <button id="toggleAdvancedFilterBtn" type="button" class="text-[11px] font-semibold text-[#25b887] hover:underline flex items-center gap-1">
+                <span>⚙️ Фильтр дат и сумм</span>
+              </button>
+              <span id="activeFilterLabel" class="text-[11px] text-gray-400">0 записей</span>
+            </div>
           </div>
 
           <div id="categoryFilterChips" class="flex gap-1.5 overflow-x-auto no-scrollbar pb-1"></div>
 
           <div class="flex items-center gap-2">
             <div class="relative flex-1">
-              <input id="searchTxInput" type="text" placeholder="Поиск платежа..." class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl pl-8 pr-3 py-2 text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#25b887]" />
+              <input id="searchTxInput" type="text" enterkeyhint="done" placeholder="Поиск по тексту, категории, сумме..." class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl pl-8 pr-3 py-2 text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#25b887]" />
               <span class="absolute left-2.5 top-2 text-gray-400 text-xs">🔍</span>
             </div>
             <select id="typeFilterSelect" class="bg-[#f6f7f9] border border-gray-200 rounded-2xl px-2.5 py-2 text-xs text-gray-700 focus:outline-none">
               <option value="all">Все</option>
               <option value="expense">Расходы</option>
               <option value="income">Доходы</option>
+              <option value="transfer">Переводы</option>
             </select>
+          </div>
+
+          <!-- Collapsible Date Range & Amount Range Filter Panel (Feature 4) -->
+          <div id="advancedFilterPanel" class="hidden rounded-2xl bg-[#f6f7f9] border border-gray-200 p-3 space-y-2.5">
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[10px] font-semibold text-gray-400 mb-0.5">Дата от</label>
+                <input id="filterDateFrom" type="date" class="w-full bg-white border border-gray-200 rounded-xl px-2.5 py-1.5 text-xs text-gray-800" />
+              </div>
+              <div>
+                <label class="block text-[10px] font-semibold text-gray-400 mb-0.5">Дата до</label>
+                <input id="filterDateTo" type="date" class="w-full bg-white border border-gray-200 rounded-xl px-2.5 py-1.5 text-xs text-gray-800" />
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[10px] font-semibold text-gray-400 mb-0.5">Сумма мин.</label>
+                <input id="filterAmountMin" type="number" inputmode="decimal" placeholder="0" class="w-full bg-white border border-gray-200 rounded-xl px-2.5 py-1.5 text-xs text-gray-800" />
+              </div>
+              <div>
+                <label class="block text-[10px] font-semibold text-gray-400 mb-0.5">Сумма макс.</label>
+                <input id="filterAmountMax" type="number" inputmode="decimal" placeholder="Любая" class="w-full bg-white border border-gray-200 rounded-xl px-2.5 py-1.5 text-xs text-gray-800" />
+              </div>
+            </div>
+            <div class="flex justify-end">
+              <button id="resetAdvancedFilterBtn" type="button" class="text-[11px] font-bold text-rose-500 hover:underline">Сбросить фильтры</button>
+            </div>
           </div>
 
           <div id="transactionsList" class="space-y-2"></div>
         </div>
       </div>
 
-      <!-- VIEW 2: ANALYTICS (ОТЧЁТЫ) -->
+      <!-- VIEW 2: ANALYTICS (ОТЧЁТЫ И БЮДЖЕТЫ ПО КАТЕГОРИЯМ) -->
       <div id="view-analytics" class="hidden space-y-4">
         <div class="rounded-[26px] card-soft p-4">
           <div class="flex items-center justify-between mb-3">
-            <h3 class="text-sm font-bold text-gray-900">Расходы по категориям</h3>
+            <h3 class="text-sm font-bold text-gray-900">Структура расходов</h3>
             <span id="analyticsTotalLabel" class="text-xs font-bold text-gray-500">₽ 0.00</span>
           </div>
           <div class="relative h-56 w-full flex items-center justify-center">
@@ -271,16 +325,18 @@
 
         <div class="rounded-[26px] card-soft p-4 space-y-3">
           <div class="flex items-center justify-between">
-            <h3 class="text-sm font-bold text-gray-900">Категории и лимиты</h3>
+            <div>
+              <h3 class="text-sm font-bold text-gray-900">Категории и лимиты</h3>
+              <p class="text-[10px] text-gray-400">Нажми на любую категорию, чтобы задать лимит или изменить</p>
+            </div>
             <button id="openAddCategoryModalBtn" type="button" class="text-xs font-bold text-[#25b887] hover:underline">+ Категория</button>
           </div>
           <div id="categoryBreakdownList" class="space-y-2.5"></div>
         </div>
       </div>
 
-      <!-- VIEW 3: BOTTLES / SAVINGS GOALS (БУТЫЛОЧКИ - 3rd Screen from reference) -->
+      <!-- VIEW 3: BOTTLES / SAVINGS GOALS (БУТЫЛОЧКИ без захардкоженных дефолтов) -->
       <div id="view-bottles" class="hidden space-y-4">
-        <!-- Summary Header Card -->
         <div class="rounded-[26px] card-soft p-4 space-y-3">
           <div class="flex items-center justify-between">
             <div>
@@ -288,7 +344,7 @@
               <div id="goalCurrentText" class="text-2xl font-extrabold text-gray-900 mt-0.5">₽ 0</div>
             </div>
             <div class="text-right">
-              <div class="text-[11px] font-medium text-gray-400">Бутылочки</div>
+              <div class="text-[11px] font-medium text-gray-400">Активных целей</div>
               <div id="totalBottlesCountHeader" class="text-2xl font-extrabold text-gray-900 mt-0.5">0</div>
             </div>
           </div>
@@ -299,99 +355,126 @@
 
           <div class="flex items-center justify-between text-[11px] text-gray-400">
             <span id="goalPercentText">0%</span>
-            <span id="goalTargetText">Цель: ₽ 0</span>
+            <span id="goalTargetText">Общая цель: ₽ 0</span>
           </div>
-          <span id="goalTitleDisplay" class="hidden">Бутылочки</span>
         </div>
 
-        <!-- Add Bottle Action Row -->
         <div class="flex items-center justify-between">
-          <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Твои копилки-бутылочки</span>
+          <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Твои копилки</span>
           <div class="flex gap-2">
             <button id="depositGoalBtn" type="button" class="px-3 py-1.5 rounded-full bg-[#e6f7f1] text-[#1da97b] text-xs font-bold hover:bg-[#d5f2e8] transition">
               + Пополнить
             </button>
             <button id="openAddBottleModalBtn" type="button" class="px-3 py-1.5 rounded-full bg-gray-900 text-white text-xs font-bold hover:bg-gray-800 transition">
-              + Новая бутылочка
+              + Новая цель
             </button>
           </div>
         </div>
 
-        <!-- 2x2 Grid of Visual SVG Bottles -->
         <div id="bottlesGrid" class="grid grid-cols-2 gap-3"></div>
       </div>
 
-      <!-- VIEW 4: ACCOUNT & BACKUP (АККАУНТ) -->
+      <!-- VIEW 4: ACCOUNT, TELEGRAM BOT, BANK IMPORT & CLOUD (АККАУНТ) -->
       <div id="view-settings" class="hidden space-y-4">
-        <!-- Supabase Cloud Sync Setup Card -->
+
+        <!-- Hardcoded Cloud Backend + Telegram Auth + Optional E2EE Passphrase -->
         <div class="rounded-[26px] bg-gradient-to-br from-[#e8f8f2] to-[#f4fbf8] border border-[#cdeee0] p-4 space-y-3">
           <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <div class="w-8 h-8 rounded-xl bg-[#25b887] text-white flex items-center justify-center font-extrabold text-xs">⚡</div>
+            <div class="flex items-center gap-2.5">
+              <div class="w-9 h-9 rounded-2xl bg-[#25b887] text-white flex items-center justify-center font-extrabold text-sm">☁️</div>
               <div>
-                <h3 class="text-sm font-extrabold text-gray-900">Облако Supabase (Мульти-девайс)</h3>
-                <p id="sbConnectionLabel" class="text-[11px] font-medium text-[#1da97b]">Ключи проекта вшиты — автоподключение активно</p>
+                <h3 class="text-sm font-extrabold text-gray-900">Облачная синхронизация</h3>
+                <p id="sbConnectionLabel" class="text-[11px] font-medium text-[#1da97b]">Авторизация через Telegram активна</p>
               </div>
             </div>
-            <button id="openSqlModalBtn" type="button" class="px-2.5 py-1.5 rounded-xl bg-white border border-[#bde6d6] text-[11px] font-bold text-[#1da97b] hover:bg-[#e6f7f1] transition">
-              SQL-скрипт
+            <button id="forcePullSupabaseBtn" type="button" class="px-3 py-1.5 rounded-xl bg-white border border-[#bde6d6] text-[11px] font-bold text-[#1da97b] hover:bg-[#e6f7f1] transition">
+              🔄 Синхр.
             </button>
           </div>
 
-          <div class="space-y-2 pt-1">
-            <div>
-              <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Telegram ID / Логин</label>
-              <input id="sbUserIdInput" type="text" placeholder="Напр.: tg_123456789 или твой ник" class="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-900 focus:outline-none focus:border-[#25b887]" />
-            </div>
+          <div class="rounded-2xl bg-white/80 border border-[#d6f1e6] px-3 py-2 flex items-center justify-between text-xs">
+            <span class="text-gray-500 font-medium">Твой ID профиля:</span>
+            <span id="profileAuthBadge" class="font-bold text-gray-900 truncate max-w-[180px]">tg_user</span>
+          </div>
 
-            <div>
-              <label class="block text-[10px] font-bold uppercase tracking-wider text-[#1da97b] mb-1">🔒 Секретный пароль шифрования (AES-256 + защита БД)</label>
-              <input id="sbSecretPassInput" type="password" placeholder="Придумай личный пароль (только ты его знаешь)" class="w-full bg-white border border-[#bde6d6] rounded-xl px-3 py-2 text-xs font-bold text-gray-900 focus:outline-none focus:border-[#25b887]" />
-              <p class="text-[10px] text-gray-500 mt-0.5">Данные шифруются на устройстве по стандарту <b>AES-GCM 256</b> перед отправкой. В Supabase лежит только зашифрованный слепок, а строка защищена крипто-хешем.</p>
+          <div>
+            <label class="block text-[10px] font-bold uppercase tracking-wider text-[#1da97b] mb-1">🔒 Пароль шифрования AES-256 (по желанию)</label>
+            <div class="flex gap-2">
+              <input id="sbSecretPassInput" type="password" enterkeyhint="done" placeholder="Личный ключ сквозного шифрования" class="flex-1 bg-white border border-[#bde6d6] rounded-xl px-3 py-2 text-xs font-bold text-gray-900 focus:outline-none focus:border-[#25b887]" />
+              <button id="saveSupabaseConfigBtn" type="button" class="px-3.5 py-2 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-xs font-bold transition">
+                Сохранить
+              </button>
             </div>
+            <p class="text-[10px] text-gray-500 mt-1">Единый облачный бэкенд уже подключен. Если задать пароль, данные шифруются на устройстве по стандарту AES-GCM 256.</p>
+          </div>
 
+          <div class="flex items-center justify-between text-[10px] text-gray-400 pt-0.5">
+            <span id="lastSyncTimeLabel">Синхронизация: ожидание...</span>
+            <span id="pwaStatusBadge" class="font-semibold text-[#1da97b]">PWA Офлайн готов ✓</span>
+          </div>
+        </div>
+
+        <!-- Feature 7: Telegram Bot Notifications & Weekly Digest -->
+        <div class="rounded-[26px] card-soft p-4 space-y-3">
+          <div class="flex items-center justify-between">
             <div>
-              <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Supabase Project URL</label>
-              <input id="sbUrlInput" type="url" placeholder="https://xxxxxxxxxxxx.supabase.co" class="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#25b887]" />
+              <h3 class="text-sm font-bold text-gray-900">🤖 Бот-уведомления и еженедельный отчёт</h3>
+              <p class="text-[11px] text-gray-400">Напоминания о подписках и сводка за 7 дней в Telegram</p>
             </div>
+            <label class="inline-flex items-center cursor-pointer">
+              <input id="botReminderToggle" type="checkbox" class="sr-only peer" />
+              <div class="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-[#25b887] transition relative after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"></div>
+            </label>
+          </div>
 
+          <div class="grid grid-cols-2 gap-2">
             <div>
-              <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Supabase Anon Public Key</label>
-              <input id="sbAnonKeyInput" type="password" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." class="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#25b887]" />
+              <label class="block text-[10px] font-semibold text-gray-400 mb-1">Время напоминаний</label>
+              <input id="botReminderTimeInput" type="time" value="20:00" class="w-full bg-white border border-gray-200 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-gray-800" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-semibold text-gray-400 mb-1">Bot Token (опционально)</label>
+              <input id="botTokenInput" type="password" enterkeyhint="done" placeholder="Для прямой отправки" class="w-full bg-white border border-gray-200 rounded-xl px-2.5 py-1.5 text-xs text-gray-800" />
             </div>
           </div>
 
           <div class="grid grid-cols-2 gap-2 pt-1">
-            <button id="saveSupabaseConfigBtn" type="button" class="py-2.5 px-3 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-xs font-bold transition">
-              Подключить и синхр.
+            <button id="sendWeeklyReportBtn" type="button" class="py-2.5 px-3 rounded-2xl bg-[#25b887] hover:bg-[#1fa377] text-white text-xs font-bold transition">
+              📨 Отправить отчёт за 7 дн.
             </button>
-            <button id="forcePullSupabaseBtn" type="button" class="py-2.5 px-3 rounded-xl bg-white border border-gray-200 hover:bg-gray-50 text-gray-800 text-xs font-bold transition">
-              🔄 Загрузить из БД
+            <button id="copyWeeklyReportBtn" type="button" class="py-2.5 px-3 rounded-2xl bg-white border border-gray-200 hover:bg-gray-50 text-gray-800 text-xs font-bold transition">
+              📋 Скопировать сводку
             </button>
-          </div>
-          <div class="flex items-center justify-between text-[11px] text-gray-400 pt-1">
-            <span id="lastSyncTimeLabel">Последняя синхронизация: —</span>
-            <button id="disconnectSupabaseBtn" type="button" class="text-rose-500 hover:underline font-medium">Отключить</button>
           </div>
         </div>
+
+        <!-- Feature 6: Bank CSV Statement Import + Export -->
         <div class="rounded-[26px] card-soft p-4 space-y-3">
-          <h3 class="text-sm font-bold text-gray-900">Экспорт и управление данными</h3>
+          <h3 class="text-sm font-bold text-gray-900">🏦 Импорт выписок (Т-Банк, Сбер) и бэкап</h3>
           <p class="text-xs text-gray-500 leading-relaxed">
-            Все счета, категории и бутылочки по умолчанию обнулены и сохраняются прямо на твоем устройстве.
+            Загрузи CSV-выписку из мобильного банка — приложение само распознает даты, суммы и расставит категории.
           </p>
-          <div class="grid grid-cols-2 gap-2.5">
-            <button id="exportCsvBtn" type="button" class="py-2.5 px-3 rounded-2xl bg-white border border-gray-200 hover:bg-gray-50 text-xs font-bold text-gray-800 transition">
-              📊 Скачать CSV
+          <div class="grid grid-cols-3 gap-2">
+            <button id="openImportModalBtn" type="button" class="py-2.5 px-2 rounded-2xl bg-gray-900 hover:bg-gray-800 text-white text-xs font-bold transition">
+              📥 Импорт CSV
             </button>
-            <button id="copyJsonBackupBtn" type="button" class="py-2.5 px-3 rounded-2xl bg-white border border-gray-200 hover:bg-gray-50 text-xs font-bold text-gray-800 transition">
+            <button id="exportCsvBtn" type="button" class="py-2.5 px-2 rounded-2xl bg-white border border-gray-200 hover:bg-gray-50 text-xs font-bold text-gray-800 transition">
+              📊 Экспорт CSV
+            </button>
+            <button id="copyJsonBackupBtn" type="button" class="py-2.5 px-2 rounded-2xl bg-white border border-gray-200 hover:bg-gray-50 text-xs font-bold text-gray-800 transition">
               📋 Бэкап JSON
             </button>
           </div>
+
           <div class="pt-3 border-t border-gray-200/70 flex items-center justify-between">
-            <button id="loadDemoDataBtn" type="button" class="text-xs font-semibold text-gray-500 hover:text-gray-800">Заполнить примером</button>
-            <button id="clearAllDataBtn" type="button" class="text-xs font-bold text-[#e65a46] hover:underline">Сбросить всё в 0 ₽</button>
+            <button id="runUnitTestsBtn" type="button" class="text-xs font-semibold text-[#1da97b] hover:underline">🧪 Проверить автотесты (9/9)</button>
+            <div class="flex items-center gap-3">
+              <button id="loadDemoDataBtn" type="button" class="text-xs font-semibold text-gray-500 hover:text-gray-800">Демо-пример</button>
+              <button id="clearAllDataBtn" type="button" class="text-xs font-bold text-[#e65a46] hover:underline">Сбросить в 0 ₽</button>
+            </div>
           </div>
         </div>
+
       </div>
 
     </main>
@@ -426,7 +509,7 @@
       </button>
     </div>
 
-    <!-- SCREEN 2 FROM REFERENCE: VOICE / SMART RECOGNITION MODAL -->
+    <!-- SCREEN 2: VOICE / SMART RECOGNITION MODAL -->
     <div id="voiceModal" class="hidden fixed inset-0 z-50 bg-white flex flex-col justify-between p-6 sheet-enter">
       <div class="flex items-center justify-between">
         <button id="closeVoiceModalBtn" type="button" class="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-700 text-lg">✕</button>
@@ -447,12 +530,10 @@
           <p class="text-xs text-gray-400 mt-1">Проверьте и подтвердите распознанные платежи или напишите фразу текстом</p>
         </div>
 
-        <!-- Text / Voice Input Box -->
         <div class="w-full">
-          <input id="smartParseInput" type="text" placeholder="Напр.: оплатила квартиру 35000" class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl px-4 py-3 text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#25b887] text-center" />
+          <input id="smartParseInput" type="text" enterkeyhint="done" placeholder="Напр.: оплатила квартиру 35000" class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl px-4 py-3 text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#25b887] text-center" />
         </div>
 
-        <!-- Recognized Payment Preview Card (Matches Reference Screen 2) -->
         <div class="w-full text-left space-y-1.5">
           <div class="text-xs font-bold text-gray-400">сегодня</div>
           <div class="rounded-2xl bg-white border border-gray-200 shadow-xs p-3.5 flex items-center justify-between gap-3">
@@ -474,44 +555,54 @@
       </button>
     </div>
 
-    <!-- MODAL 1: ADD TRANSACTION BOTTOM SHEET -->
+    <!-- MODAL 1: ADD / EDIT TRANSACTION + TRANSFER BETWEEN ACCOUNTS (Features 2 & 3) -->
     <div id="addTxModal" class="hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-end justify-center">
-      <div class="w-full max-w-md bg-white rounded-t-[32px] p-5 space-y-4 sheet-enter max-h-[92vh] overflow-y-auto shadow-2xl">
+      <div class="w-full max-w-md bg-white rounded-t-[32px] p-5 space-y-3.5 sheet-enter max-h-[92dvh] overflow-y-auto shadow-2xl">
         <div class="flex items-center justify-between">
-          <h3 class="text-base font-extrabold text-gray-900">Новая операция</h3>
+          <h3 id="txModalHeaderTitle" class="text-base font-extrabold text-gray-900">Новая операция</h3>
           <button id="closeAddTxModalBtn" type="button" class="w-8 h-8 rounded-full bg-gray-100 text-gray-500 hover:text-gray-900 flex items-center justify-center text-sm">✕</button>
         </div>
 
-        <div class="grid grid-cols-2 gap-1.5 bg-gray-100 p-1 rounded-2xl">
+        <!-- 3-Way Toggle: Расход / Доход / Перевод -->
+        <div class="grid grid-cols-3 gap-1 bg-gray-100 p-1 rounded-2xl">
           <button id="txTypeExpenseBtn" type="button" class="py-2 rounded-xl text-xs font-bold bg-white text-gray-900 shadow-xs transition">Расход</button>
           <button id="txTypeIncomeBtn" type="button" class="py-2 rounded-xl text-xs font-bold text-gray-500 hover:text-gray-900 transition">Доход</button>
+          <button id="txTypeTransferBtn" type="button" class="py-2 rounded-xl text-xs font-bold text-gray-500 hover:text-gray-900 transition">⇄ Перевод</button>
         </div>
 
         <div>
           <label class="block text-[11px] font-medium text-gray-400 mb-1">Сумма (можно формулой: 450+320)</label>
           <div class="relative">
-            <input id="txAmountInput" type="text" inputmode="decimal" placeholder="0" class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl px-4 py-3 text-2xl font-extrabold text-gray-900 focus:outline-none focus:border-[#25b887]" />
+            <input id="txAmountInput" type="text" inputmode="decimal" enterkeyhint="done" placeholder="0" class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl px-4 py-3 text-2xl font-extrabold text-gray-900 focus:outline-none focus:border-[#25b887]" />
             <span id="txModalCurrencyLabel" class="absolute right-4 top-3.5 text-lg font-bold text-gray-400">₽</span>
           </div>
         </div>
 
-        <div>
-          <label class="block text-[11px] font-medium text-gray-400 mb-1">Кошелёк / счет</label>
-          <select id="txAccountSelect" class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl px-3 py-2.5 text-xs font-semibold text-gray-800 focus:outline-none"></select>
+        <!-- Source & Destination Account Selectors -->
+        <div class="grid grid-cols-1 gap-2.5" id="txAccountsRow">
+          <div>
+            <label id="txFromAccountLabel" class="block text-[11px] font-medium text-gray-400 mb-1">Кошелёк / счет</label>
+            <select id="txAccountSelect" class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl px-3 py-2.5 text-xs font-semibold text-gray-800 focus:outline-none"></select>
+          </div>
+          <div id="txToAccountWrapper" class="hidden">
+            <label class="block text-[11px] font-medium text-indigo-500 mb-1">Куда перевести (счет зачисления)</label>
+            <select id="txToAccountSelect" class="w-full bg-indigo-50/60 border border-indigo-200 rounded-2xl px-3 py-2.5 text-xs font-semibold text-gray-900 focus:outline-none"></select>
+          </div>
         </div>
 
-        <div>
+        <!-- Category Picker (Hidden when type === 'transfer') -->
+        <div id="txCategorySection">
           <div class="flex items-center justify-between mb-1.5">
-            <label class="block text-[11px] font-medium text-gray-400">Категория (нажми ✎ на отчётах для ред.)</label>
+            <label class="block text-[11px] font-medium text-gray-400">Категория (нажми ✎ для ред.)</label>
             <button id="quickAddCatFromTxBtn" type="button" class="text-[11px] font-bold text-[#25b887] hover:underline">+ Своя категория</button>
           </div>
-          <div id="txCategoryGrid" class="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto no-scrollbar p-0.5"></div>
+          <div id="txCategoryGrid" class="grid grid-cols-4 gap-2 max-h-44 overflow-y-auto no-scrollbar p-0.5"></div>
         </div>
 
         <div class="grid grid-cols-3 gap-2">
           <div class="col-span-2">
             <label class="block text-[11px] font-medium text-gray-400 mb-1">Комментарий</label>
-            <input id="txNoteInput" type="text" placeholder="Например: Продукты у дома" class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl px-3 py-2 text-xs text-gray-900 focus:outline-none" />
+            <input id="txNoteInput" type="text" enterkeyhint="done" placeholder="Например: Продукты у дома" class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl px-3 py-2 text-xs text-gray-900 focus:outline-none" />
           </div>
           <div>
             <label class="block text-[11px] font-medium text-gray-400 mb-1">Дата</label>
@@ -535,12 +626,12 @@
         <div class="space-y-3">
           <div>
             <label class="block text-[11px] text-gray-400 mb-1">Название</label>
-            <input id="accNameInput" type="text" placeholder="Карта, Наличные, Сейф" class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl px-3 py-2 text-xs text-gray-900" />
+            <input id="accNameInput" type="text" enterkeyhint="done" placeholder="Карта Т-Банк, Сбер, Наличные" class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl px-3 py-2 text-xs text-gray-900" />
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
               <label class="block text-[11px] text-gray-400 mb-1">Начальный баланс</label>
-              <input id="accBalanceInput" type="number" step="any" placeholder="0" class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl px-3 py-2 text-xs text-gray-900" />
+              <input id="accBalanceInput" type="number" step="any" enterkeyhint="done" placeholder="0" class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl px-3 py-2 text-xs text-gray-900" />
             </div>
             <div>
               <label class="block text-[11px] text-gray-400 mb-1">Иконка</label>
@@ -626,7 +717,7 @@
       </div>
     </div>
 
-    <!-- MODAL 4: ADD BOTTLE (НОВАЯ БУТЫЛОЧКА) -->
+    <!-- MODAL 4: ADD BOTTLE (НОВАЯ БУТЫЛОЧКА-ЦЕЛЬ) -->
     <div id="bottleModal" class="hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
       <div class="w-full max-w-sm bg-white rounded-[28px] p-5 space-y-4 shadow-xl">
         <div class="flex items-center justify-between">
@@ -636,16 +727,16 @@
         <div class="space-y-3">
           <div>
             <label class="block text-[11px] text-gray-400 mb-1">На что копим?</label>
-            <input id="bottleTitleInput" type="text" placeholder="Напр.: Новый ноутбук, Отпуск, Машина" class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl px-3 py-2 text-xs text-gray-900" />
+            <input id="bottleTitleInput" type="text" enterkeyhint="done" placeholder="Напр.: Подушка безопасности, Отпуск" class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl px-3 py-2 text-xs text-gray-900" />
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
               <label class="block text-[11px] text-gray-400 mb-1">Целевая сумма</label>
-              <input id="bottleTargetInput" type="number" placeholder="100000" class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl px-3 py-2 text-xs text-gray-900" />
+              <input id="bottleTargetInput" type="number" enterkeyhint="done" placeholder="100000" class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl px-3 py-2 text-xs text-gray-900" />
             </div>
             <div>
               <label class="block text-[11px] text-gray-400 mb-1">Иконка</label>
-              <input id="bottleIconInput" type="text" value="💻" maxlength="2" class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl px-3 py-2 text-xs text-gray-900 text-center" />
+              <input id="bottleIconInput" type="text" enterkeyhint="done" value="🎯" maxlength="2" class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl px-3 py-2 text-xs text-gray-900 text-center" />
             </div>
           </div>
           <button id="saveBottleBtn" type="button" class="w-full py-3 rounded-2xl bg-gray-900 hover:bg-gray-800 text-white font-bold text-xs transition">
@@ -655,7 +746,150 @@
       </div>
     </div>
 
-    <!-- MODAL 5: QUICK NUMBER PROMPT -->
+    <!-- MODAL 5: RECURRING PAYMENTS & SUBSCRIPTIONS (Feature 1) -->
+    <div id="subscriptionsModal" class="hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div class="w-full max-w-md bg-white rounded-t-[32px] sm:rounded-[28px] p-5 space-y-4 sheet-enter max-h-[90dvh] overflow-y-auto shadow-2xl">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-base font-extrabold text-gray-900">↻ Регулярные платежи и подписки</h3>
+            <p class="text-[11px] text-gray-400">Аренда, интернет, связь, VPN и сервисы</p>
+          </div>
+          <button id="closeSubscriptionsModalBtn" type="button" class="w-8 h-8 rounded-full bg-gray-100 text-gray-500 hover:text-gray-900 flex items-center justify-center text-sm">✕</button>
+        </div>
+
+        <!-- Existing Subscriptions List -->
+        <div id="subscriptionsListContainer" class="space-y-2 max-h-52 overflow-y-auto no-scrollbar"></div>
+
+        <!-- Add New Subscription Form -->
+        <div class="rounded-2xl bg-[#f6f7f9] border border-gray-200 p-3.5 space-y-2.5">
+          <div class="text-xs font-bold text-gray-800">Добавить регулярный платёж</div>
+          <div class="grid grid-cols-3 gap-2">
+            <div class="col-span-2">
+              <input id="subTitleInput" type="text" enterkeyhint="done" placeholder="Напр.: Аренда, VPN, Связь" class="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900" />
+            </div>
+            <div>
+              <input id="subAmountInput" type="number" inputmode="decimal" enterkeyhint="done" placeholder="Сумма" class="w-full bg-white border border-gray-200 rounded-xl px-2.5 py-2 text-xs text-gray-900 font-bold" />
+            </div>
+          </div>
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="block text-[10px] text-gray-400 mb-0.5">Период</label>
+              <select id="subFreqSelect" class="w-full bg-white border border-gray-200 rounded-xl px-2 py-1.5 text-xs text-gray-800">
+                <option value="monthly">Ежемесячно</option>
+                <option value="weekly">Еженедельно</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[10px] text-gray-400 mb-0.5">След. дата</label>
+              <input id="subNextDateInput" type="date" class="w-full bg-white border border-gray-200 rounded-xl px-2 py-1.5 text-xs text-gray-800" />
+            </div>
+            <div>
+              <label class="block text-[10px] text-gray-400 mb-0.5">Категория</label>
+              <select id="subCatSelect" class="w-full bg-white border border-gray-200 rounded-xl px-2 py-1.5 text-xs text-gray-800"></select>
+            </div>
+          </div>
+          <button id="addSubscriptionBtn" type="button" class="w-full py-2.5 rounded-xl bg-gray-900 hover:bg-gray-800 text-white font-bold text-xs transition">
+            + Сохранить подписку
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 6: BANK STATEMENT CSV IMPORT (Feature 6: Т-Банк / Сбер / Универсальный) -->
+    <div id="bankImportModal" class="hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div class="w-full max-w-md bg-white rounded-t-[32px] sm:rounded-[28px] p-5 space-y-4 sheet-enter max-h-[90dvh] overflow-y-auto shadow-2xl">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-base font-extrabold text-gray-900">🏦 Импорт выписки (CSV)</h3>
+            <p class="text-[11px] text-gray-400">Поддержка CSV Т-Банка (Тинькофф), Сбера и общих таблиц</p>
+          </div>
+          <button id="closeBankImportModalBtn" type="button" class="w-8 h-8 rounded-full bg-gray-100 text-gray-500 hover:text-gray-900 flex items-center justify-center text-sm">✕</button>
+        </div>
+
+        <div class="space-y-3">
+          <div>
+            <label class="block text-[11px] font-medium text-gray-500 mb-1">На какой счет записать операции?</label>
+            <select id="importTargetAccountSelect" class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl px-3 py-2 text-xs font-semibold text-gray-800"></select>
+          </div>
+
+          <div class="rounded-2xl border-2 border-dashed border-gray-200 p-4 text-center space-y-2">
+            <input id="csvFileInput" type="file" accept=".csv,.txt" class="hidden" />
+            <button id="triggerCsvFileSelectBtn" type="button" class="px-4 py-2 rounded-xl bg-[#e6f7f1] text-[#1da97b] font-bold text-xs hover:bg-[#d5f2e8] transition">
+              📂 Выбрать файл .CSV
+            </button>
+            <p class="text-[10px] text-gray-400">или вставьте строки из выписки ниже (Дата;Сумма;Описание;Категория)</p>
+          </div>
+
+          <textarea id="csvPasteArea" rows="4" placeholder="12.11.2026;-1450;Пятерочка;Супермаркеты&#10;12.11.2026;-650;Яндекс Такси;Такси" class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl p-3 text-xs text-gray-800 font-mono focus:outline-none"></textarea>
+
+          <div id="importPreviewBadge" class="text-[11px] font-semibold text-gray-500">Готово к распознаванию</div>
+
+          <button id="confirmCsvImportBtn" type="button" class="w-full py-3 rounded-2xl bg-gray-900 hover:bg-gray-800 text-white font-bold text-xs transition">
+            Импортировать и автокатегоризировать
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 7: ONBOARDING WIZARD (Replaces hardcoded default bottles) -->
+    <div id="onboardingModal" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+      <div class="w-full max-w-sm bg-white rounded-[32px] p-6 space-y-4 shadow-2xl">
+        <div class="flex items-center justify-between">
+          <span class="px-2.5 py-1 rounded-full bg-[#e6f7f1] text-[#1da97b] text-[10px] font-extrabold uppercase tracking-wider">Быстрый старт</span>
+          <button id="closeOnboardingModalBtn" type="button" class="text-gray-400 hover:text-gray-800 text-sm">✕</button>
+        </div>
+        <div>
+          <h3 class="text-lg font-extrabold text-gray-900">Настроим твой бюджет за 15 секунд</h3>
+          <p class="text-xs text-gray-500 mt-1">Укажи стартовый баланс, месячный лимит и свою первую цель-бутылочку (по желанию).</p>
+        </div>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-[11px] font-semibold text-gray-500 mb-1">Текущий баланс на основном счете</label>
+            <input id="onbBalanceInput" type="number" step="any" enterkeyhint="done" placeholder="Напр.: 50000" class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl px-3.5 py-2.5 text-xs font-bold text-gray-900" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-gray-500 mb-1">Желаемый лимит расходов на месяц</label>
+            <input id="onbBudgetInput" type="number" step="any" enterkeyhint="done" placeholder="Напр.: 40000" class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl px-3.5 py-2.5 text-xs font-bold text-gray-900" />
+          </div>
+          <div class="pt-1 border-t border-gray-100">
+            <label class="block text-[11px] font-semibold text-gray-500 mb-1">Первая цель-бутылочка (необязательно)</label>
+            <div class="grid grid-cols-3 gap-2">
+              <input id="onbGoalTitleInput" type="text" enterkeyhint="done" placeholder="Напр.: Отпуск" class="col-span-2 bg-[#f6f7f9] border border-gray-200 rounded-2xl px-3 py-2 text-xs text-gray-900" />
+              <input id="onbGoalTargetInput" type="number" enterkeyhint="done" placeholder="Сумма" class="bg-[#f6f7f9] border border-gray-200 rounded-2xl px-2.5 py-2 text-xs text-gray-900" />
+            </div>
+          </div>
+        </div>
+        <div class="flex gap-2 pt-1">
+          <button id="skipOnboardingBtn" type="button" class="px-4 py-3 rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold text-xs transition">
+            Оставить 0 ₽
+          </button>
+          <button id="saveOnboardingBtn" type="button" class="flex-1 py-3 rounded-2xl bg-[#25b887] hover:bg-[#1fa377] text-white font-bold text-xs transition">
+            Сохранить и начать
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 8: CONFIRMATION DIALOG (Protects Clear All & Demo Load from accidental overwrite) -->
+    <div id="confirmActionModal" class="hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+      <div class="w-full max-w-xs bg-white rounded-[28px] p-5 space-y-4 shadow-2xl text-center">
+        <div class="w-12 h-12 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center text-xl mx-auto">⚠️</div>
+        <div>
+          <h3 id="confirmModalTitle" class="text-sm font-extrabold text-gray-900">Подтвердите действие</h3>
+          <p id="confirmModalDesc" class="text-xs text-gray-500 mt-1">Текущие записи будут заменены. Вы сможете отменить это действие кнопкой «Отменить».</p>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <button id="cancelConfirmModalBtn" type="button" class="py-2.5 rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs transition">
+            Отмена
+          </button>
+          <button id="acceptConfirmModalBtn" type="button" class="py-2.5 rounded-2xl bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs transition">
+            Да, выполнить
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 9: QUICK NUMBER PROMPT -->
     <div id="quickPromptModal" class="hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
       <div class="w-full max-w-sm bg-white rounded-[28px] p-5 space-y-4 shadow-xl">
         <div class="flex items-center justify-between">
@@ -663,7 +897,7 @@
           <button id="closeQuickPromptBtn" type="button" class="text-gray-400 hover:text-gray-800 text-sm">✕</button>
         </div>
         <div>
-          <input id="quickPromptInput" type="number" step="any" placeholder="0" class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl px-3 py-2.5 text-sm text-gray-900 font-bold" />
+          <input id="quickPromptInput" type="number" step="any" enterkeyhint="done" placeholder="0" class="w-full bg-[#f6f7f9] border border-gray-200 rounded-2xl px-3 py-2.5 text-sm text-gray-900 font-bold" />
         </div>
         <button id="saveQuickPromptBtn" type="button" class="w-full py-3 rounded-2xl bg-[#25b887] hover:bg-[#1fa377] text-white font-bold text-xs transition">
           Сохранить
@@ -671,89 +905,225 @@
       </div>
     </div>
 
-    <!-- MODAL 6: TELEGRAM MINI APP INFO -->
-    <div id="tmaInfoModal" class="hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-      <div class="w-full max-w-sm bg-white rounded-[28px] p-5 space-y-3 shadow-xl">
-        <div class="flex items-center justify-between">
-          <h3 class="text-sm font-extrabold text-gray-900">🤖 Запуск в Telegram (TMA)</h3>
-          <button id="closeTmaInfoModalBtn" type="button" class="text-gray-400 hover:text-gray-800 text-sm">✕</button>
-        </div>
-        <div class="text-xs text-gray-600 space-y-2 leading-relaxed">
-          <p>Все данные сейчас <b>чистые (по нулям)</b> и сохраняются автоматически на твоем устройстве.</p>
-          <ol class="list-decimal list-inside space-y-1 text-gray-500">
-            <li>Загрузи этот файл на GitHub Pages / Vercel.</li>
-            <li>В <b>@BotFather</b> открой <b>Bot Settings → Menu Button</b> и вставь ссылку.</li>
-          </ol>
-        </div>
-        <button id="gotItTmaBtn" type="button" class="w-full py-2.5 rounded-2xl bg-gray-900 text-white font-bold text-xs transition">
-          Понятно
-        </button>
-      </div>
-    </div>
-
-    <!-- MODAL 7: SUPABASE SQL SETUP & INSTRUCTIONS -->
-    <div id="sqlModal" class="hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-      <div class="w-full max-w-md bg-white rounded-[28px] p-5 space-y-3.5 shadow-2xl max-h-[88vh] overflow-y-auto">
-        <div class="flex items-center justify-between">
-          <h3 class="text-sm font-extrabold text-gray-900">⚡ Настройка базы в Supabase за 1 минуту</h3>
-          <button id="closeSqlModalBtn" type="button" class="w-8 h-8 rounded-full bg-gray-100 text-gray-500 hover:text-gray-900 flex items-center justify-center text-sm">✕</button>
-        </div>
-        <ol class="list-decimal list-inside text-xs text-gray-600 space-y-1.5 leading-relaxed">
-          <li>Создай бесплатный проект на <b>supabase.com</b>.</li>
-          <li>Слева в меню открой <b>SQL Editor → New Query</b>, вставь скрипт ниже и нажми <b>Run</b>:</li>
-        </ol>
-        <div class="relative">
-          <pre id="sqlCodeBlock" class="bg-gray-900 text-emerald-300 p-3 rounded-2xl text-[10px] overflow-x-auto leading-relaxed font-mono">-- 1. Таблица зашифрованных состояний
-create table if not exists public.vibecash_states (
-  user_id text primary key,
-  state_json jsonb not null,
-  updated_at timestamptz default now()
-);
-
--- 2. Включаем жесткий Row Level Security (RLS)
-alter table public.vibecash_states enable row level security;
-drop policy if exists "Allow public sync by user_id" on public.vibecash_states;
-drop policy if exists "Vault header lock" on public.vibecash_states;
-
--- 3. Запрещаем чтение/запись без точного крипто-токена в заголовке x-vault-key
-create policy "Vault header lock"
-  on public.vibecash_states
-  for all
-  using (
-    user_id = coalesce(
-      current_setting('request.headers', true)::json->>'x-vault-key',
-      ''
-    )
-  )
-  with check (
-    user_id = coalesce(
-      current_setting('request.headers', true)::json->>'x-vault-key',
-      ''
-    )
-  );</pre>
-          <button id="copySqlBtn" type="button" class="absolute top-2 right-2 px-2.5 py-1 rounded-lg bg-white/15 hover:bg-white/25 text-white text-[10px] font-bold transition">
-            Копировать SQL
-          </button>
-        </div>
-        <p class="text-[11px] text-gray-500 leading-relaxed">
-          3. Затем зайди в <b>Project Settings → API</b>, скопируй <b>Project URL</b> и <b>anon public key</b> в поля во вкладке «Аккаунт». После этого любое добавление расхода или бутылочки будет мгновенно улетать в облако и подтягиваться на всех твоих устройствах!
-        </p>
-        <button id="gotItSqlModalBtn" type="button" class="w-full py-3 rounded-2xl bg-[#25b887] hover:bg-[#1fa377] text-white font-bold text-xs transition">
-          Скопировать SQL и закрыть
-        </button>
-      </div>
-    </div>
-
-    <!-- Toast Notification -->
-    <div id="toastBanner" class="pointer-events-none opacity-0 transition-opacity duration-200 fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-gray-900 text-white px-4 py-2 rounded-full shadow-lg text-xs font-semibold">
+    <!-- Toast Notification with Optional Undo Button -->
+    <div id="toastBanner" class="pointer-events-none opacity-0 transition-opacity duration-200 fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-gray-900 text-white px-4 py-2 rounded-full shadow-lg text-xs font-semibold flex items-center gap-3">
       <span id="toastMessage">Сохранено</span>
+      <button id="toastUndoBtn" type="button" class="hidden pointer-events-auto text-[#25b887] font-extrabold hover:underline">Отменить</button>
     </div>
 
   </div>
 
   <script>
-    // --- ZEROED OUT DEFAULT STATE ---
-    const STORAGE_KEY = 'vibecash_light_zero_v2';
+    // =========================================================================
+    // 1. PURE CORE FUNCTIONS (Covered by Automated Unit Tests in Feature 9)
+    // =========================================================================
+
+    function evaluateMathInput(raw) {
+      const cleaned = String(raw ?? '').replace(/,/g, '.').replace(/[^0-9.+\-*/]/g, '');
+      if (!cleaned) return 0;
+      try {
+        const tokens = cleaned.split(/([+\-*/])/);
+        let total = parseFloat(tokens[0]) || 0;
+        for (let i = 1; i < tokens.length; i += 2) {
+          const op = tokens[i];
+          const val = parseFloat(tokens[i + 1]) || 0;
+          if (op === '+') total += val;
+          else if (op === '-') total -= val;
+          else if (op === '*') total *= val;
+          else if (op === '/' && val !== 0) total /= val;
+        }
+        return Math.round(total * 100) / 100;
+      } catch (e) {
+        return parseFloat(cleaned) || 0;
+      }
+    }
+
+    function calculateAccountBalance(accId, accounts, transactions) {
+      const acc = (accounts || []).find(a => a.id === accId);
+      if (!acc) return 0;
+      let bal = Number(acc.initialBalance) || 0;
+      for (const tx of (transactions || [])) {
+        const amt = Number(tx.amount) || 0;
+        if (tx.type === 'income' && tx.accountId === accId) {
+          bal += amt;
+        } else if (tx.type === 'expense' && tx.accountId === accId) {
+          bal -= amt;
+        } else if (tx.type === 'transfer') {
+          if (tx.accountId === accId) bal -= amt;
+          if (tx.toAccountId === accId) bal += amt;
+        }
+      }
+      return Math.round(bal * 100) / 100;
+    }
+
+    function calculateTotalBalance(accounts, transactions) {
+      return (accounts || []).reduce((sum, acc) => sum + calculateAccountBalance(acc.id, accounts, transactions), 0);
+    }
+
+    function parseSmartPhrase(text, categories) {
+      const cats = Array.isArray(categories) && categories.length ? categories : getZeroState().categories;
+      const raw = String(text || '').trim();
+      if (!raw) {
+        return { title: 'Введите фразу или сумму', amount: 0, category: cats[0] };
+      }
+      const numMatch = raw.match(/(\d+[\d\s.,]*)/);
+      let amount = 0;
+      let cleanTitle = raw;
+      if (numMatch) {
+        amount = parseFloat(numMatch[1].replace(/\s+/g, '').replace(',', '.')) || 0;
+        cleanTitle = raw.replace(numMatch[0], '').trim() || 'Платёж';
+      }
+
+      const lower = raw.toLowerCase();
+      let matchedCat = cats.find(c => c.type === 'expense') || cats[0];
+
+      const rules = [
+        { id: 'cat_bills', re: /(квартир|жкх|коммунал|аренд|свет|вода|отоплен)/ },
+        { id: 'cat_food', re: /(продукт|еда|супермаркет|магнит|пятерочк|вкусвилл|перекресток|лента|самокат|лавка|хлеб|молок)/ },
+        { id: 'cat_cafe', re: /(кафе|кофе|ресторан|пицц|бургер|доставк|обед|ужин|шаурм|суши|додо|вкусно и точка)/ },
+        { id: 'cat_market', re: /(озон|ozon|вб|валберис|wildberries|маркет|яндекс маркет|али|lamoda)/ },
+        { id: 'cat_auto', re: /(бензин|азс|заправк|лукойл|газпромнефть|роснефть|мойк|шиномонтаж|парковк|штраф|авто)/ },
+        { id: 'cat_taxi', re: /(такси|метро|автобус|проезд|каршеринг|делимобиль|ситидрайв|поезд|электричк|тройка)/ },
+        { id: 'cat_pharma', re: /(аптек|врач|лекарств|анализ|клиник|стоматолог|таблетк|горздрав|ригла)/ },
+        { id: 'cat_subs', re: /(связь|интернет|подписк|телефон|мтс|билайн|мегафон|т2|tele2|яндекс плюс|vpn|впн|telegram)/ },
+        { id: 'cat_clothes', re: /(одежд|обувь|куртк|кроссовк|джинс|футболк|шопинг)/ },
+        { id: 'cat_beauty', re: /(стрижк|барбер|маникюр|косметик|салон|уход|золотое яблоко|лэтуаль)/ },
+        { id: 'cat_sport', re: /(спорт|зал|фитнес|тренировк|бассейн|ddx|spirit)/ },
+        { id: 'cat_fun', re: /(кино|игр|бар|клуб|концерт|развлеч|театр|steam)/ },
+        { id: 'cat_save', re: /(копил|отлож|сбереж|инвест)/ }
+      ];
+
+      for (const r of rules) {
+        if (r.re.test(lower)) {
+          matchedCat = cats.find(c => c.id === r.id) || matchedCat;
+          break;
+        }
+      }
+
+      return { title: cleanTitle, amount, category: matchedCat };
+    }
+
+    function parseBankCsvLines(csvText, categories) {
+      const cats = Array.isArray(categories) && categories.length ? categories : getZeroState().categories;
+      const lines = String(csvText || '').split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      const parsedTxs = [];
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        // Skip header rows
+        if (/^(дата|date|операци|категори)/i.test(line)) continue;
+        const delimiter = line.includes(';') ? ';' : (line.includes('\t') ? '\t' : ',');
+        const cols = line.split(delimiter).map(c => c.replace(/^["']|["']$/g, '').trim());
+        if (cols.length < 2) continue;
+
+        // Find date column (DD.MM.YYYY or YYYY-MM-DD)
+        let isoDate = new Date().toISOString().slice(0, 10);
+        for (const col of cols) {
+          const dmy = col.match(/^(\d{2})\.(\d{2})\.(\d{4})/);
+          const ymd = col.match(/^(\d{4})-(\d{2})-(\d{2})/);
+          if (dmy) {
+            isoDate = `${dmy[3]}-${dmy[2]}-${dmy[1]}`;
+            break;
+          } else if (ymd) {
+            isoDate = `${ymd[1]}-${ymd[2]}-${ymd[3]}`;
+            break;
+          }
+        }
+
+        // Find numeric amount column (e.g., -1450,00 or +50000 or 450.50)
+        let rawAmount = null;
+        for (const col of cols) {
+          if (/^[+\-]?\d[\d\s]*([.,]\d{1,2})?$/.test(col) && !/^\d{2}\.\d{2}\.\d{4}$/.test(col)) {
+            const num = parseFloat(col.replace(/\s+/g, '').replace(',', '.'));
+            if (!isNaN(num) && num !== 0) {
+              rawAmount = num;
+              break;
+            }
+          }
+        }
+        if (rawAmount === null) continue;
+
+        const isIncome = rawAmount > 0 && cols.some(c => /(пополнен|зарплат|перевод от|кэшбэк|зачислен|\+)/i.test(c));
+        const txType = rawAmount < 0 ? 'expense' : (isIncome ? 'income' : 'expense');
+        const absAmount = Math.abs(rawAmount);
+
+        const textCols = cols.filter(c => !/^[+\-]?\d[\d\s.,]*$/.test(c));
+        const description = textCols.join(' • ') || 'Банковская операция';
+        const smart = parseSmartPhrase(`${description} ${absAmount}`, cats);
+
+        parsedTxs.push({
+          id: 'tx_imp_' + Date.now() + '_' + i,
+          type: txType,
+          amount: absAmount,
+          categoryId: txType === 'income' ? 'cat_salary' : (smart.category ? smart.category.id : 'cat_food'),
+          note: description.slice(0, 70),
+          date: isoDate
+        });
+      }
+      return parsedTxs;
+    }
+
+    function runBuiltInUnitTests() {
+      const cats = getZeroState().categories;
+      const results = [];
+
+      // Test 1: evaluateMathInput addition & multiplication
+      const t1 = evaluateMathInput('450+320*1');
+      results.push({ name: 'evaluateMathInput("450+320") === 770', pass: evaluateMathInput('450+320') === 770 });
+
+      // Test 2: evaluateMathInput decimals with comma
+      results.push({ name: 'evaluateMathInput("120,5+29,5") === 150', pass: evaluateMathInput('120,5+29,5') === 150 });
+
+      // Test 3: parseSmartPhrase apartment bill
+      const p1 = parseSmartPhrase('оплатила квартиру 35000', cats);
+      results.push({ name: 'parseSmartPhrase("оплатила квартиру 35000") -> ЖКХ 35000', pass: p1.amount === 35000 && p1.category.id === 'cat_bills' });
+
+      // Test 4: parseSmartPhrase taxi
+      const p2 = parseSmartPhrase('яндекс такси 650', cats);
+      results.push({ name: 'parseSmartPhrase("яндекс такси 650") -> Такси 650', pass: p2.amount === 650 && p2.category.id === 'cat_taxi' });
+
+      // Test 5: parseSmartPhrase marketplace
+      const p3 = parseSmartPhrase('заказ ozon 2400', cats);
+      results.push({ name: 'parseSmartPhrase("заказ ozon 2400") -> Маркетплейсы 2400', pass: p3.amount === 2400 && p3.category.id === 'cat_market' });
+
+      // Test 6 & 7: calculateAccountBalance with transfers between accounts
+      const mockAccs = [
+        { id: 'a1', initialBalance: 10000 },
+        { id: 'a2', initialBalance: 2000 }
+      ];
+      const mockTxs = [
+        { type: 'expense', amount: 1500, accountId: 'a1' },
+        { type: 'income', amount: 5000, accountId: 'a1' },
+        { type: 'transfer', amount: 3000, accountId: 'a1', toAccountId: 'a2' }
+      ];
+      const bal1 = calculateAccountBalance('a1', mockAccs, mockTxs);
+      const bal2 = calculateAccountBalance('a2', mockAccs, mockTxs);
+      results.push({ name: 'calculateAccountBalance(источник перевода) === 10500', pass: bal1 === 10500 });
+      results.push({ name: 'calculateAccountBalance(получатель перевода) === 5000', pass: bal2 === 5000 });
+
+      // Test 8: Total balance invariant under internal transfer
+      const total = calculateTotalBalance(mockAccs, mockTxs);
+      results.push({ name: 'calculateTotalBalance сохраняет общий баланс при переводе (15500)', pass: total === 15500 });
+
+      // Test 9: Bank CSV parser (T-Bank / Sber format)
+      const sampleCsv = 'Дата;Сумма;Описание;Категория\n12.11.2026;-1450,00;Пятерочка;Супермаркеты\n13.11.2026;-520;Яндекс Такси;Транспорт';
+      const parsedCsv = parseBankCsvLines(sampleCsv, cats);
+      results.push({
+        name: 'parseBankCsvLines распознает CSV выписку банка и категории',
+        pass: parsedCsv.length === 2 && parsedCsv[0].amount === 1450 && parsedCsv[0].categoryId === 'cat_food' && parsedCsv[1].categoryId === 'cat_taxi'
+      });
+
+      return results;
+    }
+
+    // =========================================================================
+    // 2. CLEAN V3 STATE, AUTH & HARDCODED SUPABASE BACKEND
+    // =========================================================================
+    const STORAGE_KEY = 'vibecash_state_v3';
+    const AUTH_KEY = 'vibecash_auth_v3';
+    const BACKEND_URL = 'https://domubgxeescjzlnfsgfk.supabase.co';
+    const BACKEND_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvbXViZ3hlZXNjanpsbmZzZ2ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MzExODksImV4cCI6MjEwOTIwNzE4OX0.4N97ldzXyHypQa_2KO_kjPcTot1ubrkH1M4ho61jzsk';
+
     const CURRENCIES = [
       { code: 'RUB', symbol: '₽', label: '₽ RUB' },
       { code: 'USD', symbol: '$', label: '$ USD' },
@@ -763,14 +1133,16 @@ create policy "Vault header lock"
 
     function getZeroState() {
       return {
+        version: 3,
+        onboarded: false,
         currencyIndex: 0,
         monthlyBudget: 0,
         selectedAccountId: 'all',
         selectedCategoryId: 'all',
-        goal: {
-          title: 'Бутылочки',
-          current: 0,
-          target: 0
+        botNotifications: {
+          enabled: false,
+          reminderTime: '20:00',
+          botToken: ''
         },
         accounts: [
           { id: 'acc_main', name: 'Основной счёт', icon: '💳', initialBalance: 0 },
@@ -802,53 +1174,14 @@ create policy "Vault header lock"
           { id: 'cat_cashback', name: 'Кэшбэк и проценты', icon: '✨', type: 'income', color: '#10b981', limit: 0 },
           { id: 'cat_gift', name: 'Переводы и возвраты', icon: '🤝', type: 'income', color: '#34d399', limit: 0 }
         ],
-        bottles: [
-          { id: 'bot_1', title: 'Новый ноутбук', icon: '💻', current: 0, target: 0, color: '#1d4ed8', dateLabel: 'Без срока' },
-          { id: 'bot_2', title: 'Отпуск / Мечта', icon: '🌴', current: 0, target: 0, color: '#84cc16', dateLabel: 'Без срока' },
-          { id: 'bot_3', title: 'Крупная покупка', icon: '🚗', current: 0, target: 0, color: '#9d174d', dateLabel: 'Без срока' },
-          { id: 'bot_4', title: 'Подушка безопасности', icon: '💰', current: 0, target: 0, color: '#f59e0b', dateLabel: 'Без срока' }
-        ],
+        bottles: [],
+        subscriptions: [],
         transactions: []
       };
     }
 
-    let state = loadState();
-    let currentTxModalType = 'expense';
-    let selectedModalCategoryId = 'cat_food';
-    let quickPromptCallback = null;
-    let doughnutChartInstance = null;
-
-    function loadState() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          if (parsed && Array.isArray(parsed.accounts) && Array.isArray(parsed.transactions)) {
-            if (!Array.isArray(parsed.bottles)) parsed.bottles = getZeroState().bottles;
-            const defaultCats = getZeroState().categories;
-            if (!Array.isArray(parsed.categories)) {
-              parsed.categories = defaultCats;
-            } else if (!parsed.bankCatsMergedV2) {
-              const existingIds = new Set(parsed.categories.map(c => c.id));
-              defaultCats.forEach(dc => {
-                if (!existingIds.has(dc.id)) parsed.categories.push(dc);
-              });
-              parsed.bankCatsMergedV2 = true;
-            }
-            return parsed;
-          }
-        }
-      } catch (e) {}
-      return getZeroState();
-    }
-
-    const SB_CONFIG_KEY = 'vibecash_supabase_cfg_v1';
-    let supabaseClient = null;
-    let sbSyncTimer = null;
-
-    const DEVICE_UID_KEY = 'vibecash_unique_guest_id_v1';
-
-    function detectTelegramUser() {
+    // Single unified User Identity resolver (No duplicate functions)
+    function resolveUserProfile() {
       try {
         if (window.Telegram && window.Telegram.WebApp) {
           window.Telegram.WebApp.ready();
@@ -856,75 +1189,69 @@ create policy "Vault header lock"
           const u = window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user;
           if (u && u.id) {
             return {
-              id: 'tg_' + String(u.id),
-              username: u.username ? '@' + u.username : (u.first_name || 'TG User')
+              userId: 'tg_' + String(u.id),
+              displayName: u.username ? '@' + u.username : (u.first_name || 'Telegram User'),
+              chatId: String(u.id)
             };
           }
         }
       } catch (e) {}
-      return null;
-    }
 
-    function getOrCreateIsolatedUserId() {
-      const tgUser = detectTelegramUser();
-      if (tgUser) return tgUser.id;
       try {
-        let savedUid = localStorage.getItem(DEVICE_UID_KEY);
-        if (!savedUid || savedUid === 'my_vibecash_sync') {
-          const rnd = Math.random().toString(36).substring(2, 8) + Date.now().toString(36).slice(-4);
-          savedUid = 'user_' + rnd;
-          localStorage.setItem(DEVICE_UID_KEY, savedUid);
+        let saved = localStorage.getItem(AUTH_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed && parsed.userId) return parsed;
         }
-        return savedUid;
+        const guestId = 'user_' + Math.random().toString(36).substring(2, 8) + Date.now().toString(36).slice(-4);
+        const profile = { userId: guestId, displayName: guestId, chatId: '' };
+        localStorage.setItem(AUTH_KEY, JSON.stringify(profile));
+        return profile;
       } catch (e) {
-        return 'user_' + Math.random().toString(36).substring(2, 10);
+        return { userId: 'user_local', displayName: 'Локальный профиль', chatId: '' };
       }
     }
 
-    function detectTelegramUserId() {
-      const tgUser = detectTelegramUser();
-      return tgUser ? tgUser.id : getOrCreateIsolatedUserId();
-    }
+    const userProfile = resolveUserProfile();
+    let secretPassphrase = '';
+    try {
+      secretPassphrase = localStorage.getItem('vibecash_e2ee_pass_v3') || '';
+    } catch (e) {}
 
-    const DEFAULT_SB_URL = 'https://domubgxeescjzlnfsgfk.supabase.co';
-    const DEFAULT_SB_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvbXViZ3hlZXNjanpsbmZzZ2ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MzExODksImV4cCI6MjEwOTIwNzE4OX0.4N97ldzXyHypQa_2KO_kjPcTot1ubrkH1M4ho61jzsk';
-
-    function normalizeSupabaseUrl(rawUrl) {
-      if (!rawUrl) return '';
-      return String(rawUrl).trim().replace(/\/rest\/v1\/?$/i, '').replace(/\/+$/, '');
-    }
-
-    function loadSupabaseConfig() {
+    function loadState() {
       try {
-        const raw = localStorage.getItem(SB_CONFIG_KEY);
+        const raw = localStorage.getItem(STORAGE_KEY);
         if (raw) {
-          const cfg = JSON.parse(raw);
-          if (cfg && typeof cfg === 'object') {
-            return {
-              url: normalizeSupabaseUrl(cfg.url) || DEFAULT_SB_URL,
-              anonKey: (cfg.anonKey && cfg.anonKey.trim()) ? cfg.anonKey.trim() : DEFAULT_SB_ANON_KEY,
-              userId: (cfg.userId && cfg.userId.trim()) ? cfg.userId.trim() : (detectTelegramUserId()),
-              secretPass: cfg.secretPass || ''
-            };
+          const parsed = JSON.parse(raw);
+          if (parsed && parsed.version === 3 && Array.isArray(parsed.accounts)) {
+            return parsed;
           }
         }
       } catch (e) {}
-      return {
-        url: DEFAULT_SB_URL,
-        anonKey: DEFAULT_SB_ANON_KEY,
-        userId: detectTelegramUserId(),
-        secretPass: ''
-      };
+      return getZeroState();
     }
+
+    let state = loadState();
+    let undoSnapshot = null;
+    let pendingConfirmCallback = null;
+    let currentTxModalType = 'expense';
+    let selectedModalCategoryId = 'cat_food';
+    let editingTransactionId = null;
+    let editingCategoryId = null;
+    let quickPromptCallback = null;
+    let doughnutChartInstance = null;
+    let supabaseClient = null;
+    let sbSyncTimer = null;
+    let activeVaultId = '';
 
     // --- ZERO-KNOWLEDGE CRYPTO (SHA-256 VAULT ID + AES-GCM-256 E2EE) ---
     async function computeVaultKeyId(userId, secretPass) {
-      const cleanUser = (userId || detectTelegramUserId()).trim();
+      const cleanUser = (userId || userProfile.userId).trim();
       const cleanPass = (secretPass || '').trim();
       if (!cleanPass || !window.crypto || !window.crypto.subtle) {
         return cleanUser;
       }
-      const msgBuffer = new TextEncoder().encode(`vibecash_vault_v1::${cleanUser}::${cleanPass}`);
+      const msgBuffer = new TextEncoder().encode(`vibecash_vault_v3::${cleanUser}::${cleanPass}`);
       const hashBuffer = await window.crypto.subtle.digest('SHA-256', msgBuffer);
       const hashArray = Array.from(new Uint8Array(hashBuffer));
       return 'vault_' + hashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 40);
@@ -955,45 +1282,28 @@ create policy "Vault header lock"
 
     async function encryptStatePayload(plainState, userId, secretPass) {
       const pass = (secretPass || '').trim();
-      if (!pass || !window.crypto || !window.crypto.subtle) {
-        return plainState;
-      }
+      if (!pass || !window.crypto || !window.crypto.subtle) return plainState;
       const key = await deriveAesKey(userId, pass);
       const iv = window.crypto.getRandomValues(new Uint8Array(12));
       const encoded = new TextEncoder().encode(JSON.stringify(plainState));
       const cipherBuffer = await window.crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, encoded);
-      const ivB64 = btoa(String.fromCharCode(...iv));
-      const ctB64 = btoa(String.fromCharCode(...new Uint8Array(cipherBuffer)));
       return {
         __e2ee_v1: true,
         alg: 'AES-GCM-256',
-        iv: ivB64,
-        ciphertext: ctB64
+        iv: btoa(String.fromCharCode(...iv)),
+        ciphertext: btoa(String.fromCharCode(...new Uint8Array(cipherBuffer)))
       };
     }
 
     async function decryptStatePayload(payload, userId, secretPass) {
-      if (!payload || !payload.__e2ee_v1) {
-        return payload;
-      }
+      if (!payload || !payload.__e2ee_v1) return payload;
       const pass = (secretPass || '').trim();
-      if (!pass) {
-        throw new Error('Требуется секретный пароль для расшифровки');
-      }
+      if (!pass) throw new Error('Требуется пароль шифрования');
       const key = await deriveAesKey(userId, pass);
       const iv = Uint8Array.from(atob(payload.iv), c => c.charCodeAt(0));
       const ct = Uint8Array.from(atob(payload.ciphertext), c => c.charCodeAt(0));
       const plainBuffer = await window.crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
       return JSON.parse(new TextDecoder().decode(plainBuffer));
-    }
-
-    let sbConfig = loadSupabaseConfig();
-
-    function saveSupabaseConfig(cfg) {
-      sbConfig = cfg;
-      try {
-        localStorage.setItem(SB_CONFIG_KEY, JSON.stringify(cfg));
-      } catch (e) {}
     }
 
     function updateSyncIndicator(status, message) {
@@ -1004,59 +1314,49 @@ create policy "Vault header lock"
 
       if (status === 'synced') {
         dot.className = 'w-1.5 h-1.5 rounded-full bg-[#25b887]';
-        shortText.textContent = 'Supabase ✓';
-        if (label) label.textContent = message || 'Синхронизировано с Supabase';
+        shortText.textContent = 'Облако ✓';
+        if (label) label.textContent = message || 'Синхронизировано с облаком';
       } else if (status === 'syncing') {
         dot.className = 'w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse';
         shortText.textContent = 'Синхр...';
         if (label) label.textContent = message || 'Сохранение в облако...';
       } else if (status === 'error') {
         dot.className = 'w-1.5 h-1.5 rounded-full bg-rose-500';
-        shortText.textContent = 'Ошибка БД';
-        if (label) label.textContent = message || 'Ошибка подключения к Supabase';
+        shortText.textContent = 'Офлайн БД';
+        if (label) label.textContent = message || 'Работает локально (офлайн-режим)';
       } else {
         dot.className = 'w-1.5 h-1.5 rounded-full bg-gray-400';
         shortText.textContent = 'Локально';
-        if (label) label.textContent = message || 'Не подключено — хранится на устройстве';
+        if (label) label.textContent = message || 'Локальное хранилище';
       }
     }
 
-    let activeVaultId = '';
-
     async function initSupabaseClient() {
-      if (!sbConfig.url || !sbConfig.anonKey || !window.supabase) {
-        supabaseClient = null;
+      if (!window.supabase) {
         updateSyncIndicator('local');
         return null;
       }
       try {
-        const cleanUrl = normalizeSupabaseUrl(sbConfig.url);
-        activeVaultId = await computeVaultKeyId(sbConfig.userId, sbConfig.secretPass);
-        supabaseClient = window.supabase.createClient(cleanUrl, sbConfig.anonKey.trim(), {
-          global: {
-            headers: {
-              'x-vault-key': activeVaultId
-            }
-          }
+        activeVaultId = await computeVaultKeyId(userProfile.userId, secretPassphrase);
+        supabaseClient = window.supabase.createClient(BACKEND_URL, BACKEND_ANON_KEY, {
+          global: { headers: { 'x-vault-key': activeVaultId } }
         });
         return supabaseClient;
       } catch (e) {
         supabaseClient = null;
-        updateSyncIndicator('error', 'Проверьте URL и Anon Key');
+        updateSyncIndicator('error');
         return null;
       }
     }
 
     async function pushStateToSupabase() {
-      if (!supabaseClient || !sbConfig.userId) return;
+      if (!supabaseClient) return;
       updateSyncIndicator('syncing');
       try {
         const nowIso = new Date().toISOString();
         state.updatedAt = nowIso;
-        if (!activeVaultId) {
-          activeVaultId = await computeVaultKeyId(sbConfig.userId, sbConfig.secretPass);
-        }
-        const encryptedPayload = await encryptStatePayload(state, sbConfig.userId, sbConfig.secretPass);
+        activeVaultId = await computeVaultKeyId(userProfile.userId, secretPassphrase);
+        const encryptedPayload = await encryptStatePayload(state, userProfile.userId, secretPassphrase);
         const { error } = await supabaseClient
           .from('vibecash_states')
           .upsert({
@@ -1066,29 +1366,23 @@ create policy "Vault header lock"
           }, { onConflict: 'user_id' });
 
         if (error) {
-          updateSyncIndicator('error', 'Ошибка записи: ' + (error.message || 'проверьте SQL'));
+          updateSyncIndicator('error', 'Локальный режим (проверьте RLS в README)');
         } else {
-          const timeStr = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-          const timeLabel = document.getElementById('lastSyncTimeLabel');
-          const modeTag = (sbConfig.secretPass && sbConfig.secretPass.trim()) ? '🔒 AES-256' : '☁️ Облако';
-          if (timeLabel) timeLabel.textContent = `Синхр. (${modeTag}): ${timeStr}`;
-          updateSyncIndicator('synced', `${modeTag} • Защищено`);
+          const timeStr = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+          const modeTag = secretPassphrase ? '🔒 AES-256' : '☁️ Облако';
+          document.getElementById('lastSyncTimeLabel').textContent = `Синхр. (${modeTag}): ${timeStr}`;
+          updateSyncIndicator('synced', `${modeTag} • Профиль ${userProfile.displayName}`);
         }
       } catch (e) {
-        updateSyncIndicator('error', 'Сетевая ошибка при сохранении');
+        updateSyncIndicator('error', 'Офлайн — изменения сохранены локально');
       }
     }
 
     async function pullStateFromSupabase(showNotification = false) {
-      if (!supabaseClient || !sbConfig.userId) {
-        if (showNotification) showToast('Сначала укажите URL и Anon Key');
-        return;
-      }
-      updateSyncIndicator('syncing', 'Загрузка из Supabase...');
+      if (!supabaseClient) return;
+      updateSyncIndicator('syncing', 'Загрузка из облака...');
       try {
-        if (!activeVaultId) {
-          activeVaultId = await computeVaultKeyId(sbConfig.userId, sbConfig.secretPass);
-        }
+        activeVaultId = await computeVaultKeyId(userProfile.userId, secretPassphrase);
         const { data, error } = await supabaseClient
           .from('vibecash_states')
           .select('state_json, updated_at')
@@ -1096,41 +1390,36 @@ create policy "Vault header lock"
           .maybeSingle();
 
         if (error) {
-          updateSyncIndicator('error', 'Ошибка чтения: выполните SQL-скрипт в Supabase');
-          if (showNotification) showToast('Выполните SQL-скрипт в Supabase');
+          updateSyncIndicator('error', 'Хранится на устройстве');
           return;
         }
 
         if (data && data.state_json) {
           let unpacked = null;
           try {
-            unpacked = await decryptStatePayload(data.state_json, sbConfig.userId, sbConfig.secretPass);
+            unpacked = await decryptStatePayload(data.state_json, userProfile.userId, secretPassphrase);
           } catch (decErr) {
-            updateSyncIndicator('error', 'Неверный секретный пароль шифрования');
-            if (showNotification) showToast('Неверный секретный пароль 🔒');
+            updateSyncIndicator('error', 'Требуется верный пароль шифрования');
+            if (showNotification) showToast('Неверный пароль шифрования 🔒');
             return;
           }
           if (unpacked && Array.isArray(unpacked.accounts)) {
-            state = unpacked;
-            if (!Array.isArray(state.bottles)) state.bottles = getZeroState().bottles;
-            try {
-              localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-            } catch (e) {}
+            state = Object.assign(getZeroState(), unpacked, { version: 3 });
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+            processDueSubscriptions();
             renderAll();
-            const timeStr = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            const timeLabel = document.getElementById('lastSyncTimeLabel');
-            const modeTag = (sbConfig.secretPass && sbConfig.secretPass.trim()) ? '🔒 AES-256' : '☁️ Облако';
-            if (timeLabel) timeLabel.textContent = `Загружено (${modeTag}): ${timeStr}`;
-            updateSyncIndicator('synced', `${modeTag} • Защищено`);
-            if (showNotification) showToast('Данные расшифрованы и загружены 🔒');
+            const timeStr = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+            const modeTag = secretPassphrase ? '🔒 AES-256' : '☁️ Облако';
+            document.getElementById('lastSyncTimeLabel').textContent = `Загружено (${modeTag}): ${timeStr}`;
+            updateSyncIndicator('synced', `${modeTag} • Профиль ${userProfile.displayName}`);
+            if (showNotification) showToast('Синхронизировано с облаком ☁️');
           }
         } else {
           await pushStateToSupabase();
-          if (showNotification) showToast('Защищенный сейф создан в Supabase 🔒');
+          if (showNotification) showToast('Профиль сохранен в облаке ☁️');
         }
       } catch (e) {
-        updateSyncIndicator('error', 'Не удалось связаться с Supabase');
-        if (showNotification) showToast('Ошибка сети');
+        updateSyncIndicator('error', 'Офлайн-режим');
       }
     }
 
@@ -1139,14 +1428,165 @@ create policy "Vault header lock"
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       } catch (e) {}
-      if (supabaseClient && sbConfig.userId) {
+      if (supabaseClient) {
         clearTimeout(sbSyncTimer);
-        sbSyncTimer = setTimeout(() => {
-          pushStateToSupabase();
-        }, 350);
+        sbSyncTimer = setTimeout(() => { pushStateToSupabase(); }, 350);
       }
     }
 
+    // Modern Clipboard API (Replaces deprecated document.execCommand)
+    async function copyToClipboard(text, successMsg = 'Скопировано в буфер') {
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+          showToast(successMsg);
+          return;
+        }
+      } catch (e) {}
+      showToast('Не удалось скопировать в этом окружении');
+    }
+
+    // Toast with Undo capability
+    let toastTimeout = null;
+    function showToast(msg, withUndo = false) {
+      const banner = document.getElementById('toastBanner');
+      const undoBtn = document.getElementById('toastUndoBtn');
+      document.getElementById('toastMessage').textContent = msg;
+      if (withUndo && undoSnapshot) {
+        undoBtn.classList.remove('hidden');
+      } else {
+        undoBtn.classList.add('hidden');
+      }
+      banner.classList.remove('opacity-0');
+      banner.classList.add('opacity-100');
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        banner.classList.remove('opacity-100');
+        banner.classList.add('opacity-0');
+      }, withUndo ? 5000 : 2200);
+    }
+
+    function openConfirmModal(title, desc, onConfirm) {
+      document.getElementById('confirmModalTitle').textContent = title;
+      document.getElementById('confirmModalDesc').textContent = desc;
+      pendingConfirmCallback = onConfirm;
+      document.getElementById('confirmActionModal').classList.remove('hidden');
+    }
+
+    // =========================================================================
+    // 3. RECURRING SUBSCRIPTIONS ENGINE (Feature 1)
+    // =========================================================================
+    function advanceDate(isoDate, freq) {
+      const d = new Date(isoDate + 'T12:00:00');
+      if (freq === 'weekly') d.setDate(d.getDate() + 7);
+      else d.setMonth(d.getMonth() + 1);
+      return d.toISOString().slice(0, 10);
+    }
+
+    function processDueSubscriptions() {
+      if (!Array.isArray(state.subscriptions)) state.subscriptions = [];
+      const today = new Date().toISOString().slice(0, 10);
+      let postedCount = 0;
+
+      state.subscriptions.forEach(sub => {
+        if (sub.active === false) return;
+        let safety = 0;
+        while (sub.nextDate && sub.nextDate <= today && safety < 12) {
+          state.transactions.unshift({
+            id: 'tx_sub_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+            type: 'expense',
+            amount: Number(sub.amount) || 0,
+            accountId: sub.accountId || (state.accounts[0] ? state.accounts[0].id : 'acc_main'),
+            categoryId: sub.categoryId || 'cat_subs',
+            note: `↻ Подписка: ${sub.title}`,
+            date: sub.nextDate
+          });
+          sub.nextDate = advanceDate(sub.nextDate, sub.freq || 'monthly');
+          postedCount++;
+          safety++;
+        }
+      });
+
+      if (postedCount > 0) {
+        saveState();
+        showToast(`Проведено регулярных платежей: ${postedCount} ↻`);
+      }
+    }
+
+    function renderSubscriptionsModal() {
+      const list = document.getElementById('subscriptionsListContainer');
+      const catSelect = document.getElementById('subCatSelect');
+      catSelect.innerHTML = '';
+      state.categories.filter(c => c.type === 'expense').forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat.id;
+        opt.textContent = `${cat.icon} ${cat.name}`;
+        catSelect.appendChild(opt);
+      });
+      catSelect.value = 'cat_subs';
+
+      if (!document.getElementById('subNextDateInput').value) {
+        document.getElementById('subNextDateInput').value = new Date().toISOString().slice(0, 10);
+      }
+
+      list.innerHTML = '';
+      const subs = state.subscriptions || [];
+      if (subs.length === 0) {
+        list.innerHTML = `<div class="rounded-2xl bg-gray-50 p-4 text-center text-xs text-gray-400">Пока нет регулярных подписок (добавь аренду, интернет или VPN ниже)</div>`;
+        return;
+      }
+
+      subs.forEach(sub => {
+        const cat = state.categories.find(c => c.id === sub.categoryId) || { icon: '↻', name: 'Подписка' };
+        const row = document.createElement('div');
+        row.className = 'rounded-2xl bg-white border border-gray-200 p-3 flex items-center justify-between gap-2';
+        row.innerHTML = `
+          <div class="flex items-center gap-2.5 min-w-0">
+            <span class="w-8 h-8 rounded-xl bg-purple-50 flex items-center justify-center text-sm flex-shrink-0">${cat.icon}</span>
+            <div class="min-w-0">
+              <div class="text-xs font-bold text-gray-900 truncate">${sub.title}</div>
+              <div class="text-[10px] text-gray-400">${sub.freq === 'weekly' ? 'Еженедельно' : 'Ежемесячно'} • след: ${sub.nextDate}</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5 flex-shrink-0">
+            <span class="text-xs font-extrabold text-gray-900 mr-1">${formatMoney(sub.amount)}</span>
+            <button type="button" class="run-sub-now px-2 py-1 rounded-lg bg-[#e6f7f1] text-[#1da97b] text-[10px] font-bold" title="Списать сейчас">Списать</button>
+            <button type="button" class="del-sub-btn w-6 h-6 rounded-full bg-gray-100 hover:bg-rose-100 text-gray-400 hover:text-rose-600 text-xs flex items-center justify-center" title="Удалить">✕</button>
+          </div>
+        `;
+
+        row.querySelector('.run-sub-now').addEventListener('click', () => {
+          state.transactions.unshift({
+            id: 'tx_sub_manual_' + Date.now(),
+            type: 'expense',
+            amount: Number(sub.amount) || 0,
+            accountId: sub.accountId || (state.accounts[0] ? state.accounts[0].id : 'acc_main'),
+            categoryId: sub.categoryId || 'cat_subs',
+            note: `↻ ${sub.title}`,
+            date: new Date().toISOString().slice(0, 10)
+          });
+          sub.nextDate = advanceDate(sub.nextDate || new Date().toISOString().slice(0, 10), sub.freq);
+          saveState();
+          renderAll();
+          renderSubscriptionsModal();
+          showToast(`Платёж «${sub.title}» проведён`);
+        });
+
+        row.querySelector('.del-sub-btn').addEventListener('click', () => {
+          state.subscriptions = state.subscriptions.filter(s => s.id !== sub.id);
+          saveState();
+          renderAll();
+          renderSubscriptionsModal();
+          showToast('Подписка удалена');
+        });
+
+        list.appendChild(row);
+      });
+    }
+
+    // =========================================================================
+    // 4. FORMATTING & RENDERING (Features 2, 3, 4, 5)
+    // =========================================================================
     function getCurrencySymbol() {
       return CURRENCIES[state.currencyIndex % CURRENCIES.length].symbol;
     }
@@ -1163,31 +1603,12 @@ create policy "Vault header lock"
       return `${sym} ${formatted}`;
     }
 
-    function showToast(msg) {
-      const banner = document.getElementById('toastBanner');
-      document.getElementById('toastMessage').textContent = msg;
-      banner.classList.remove('opacity-0');
-      banner.classList.add('opacity-100');
-      setTimeout(() => {
-        banner.classList.remove('opacity-100');
-        banner.classList.add('opacity-0');
-      }, 2000);
-    }
-
     function getAccountBalance(accId) {
-      const acc = state.accounts.find(a => a.id === accId);
-      if (!acc) return 0;
-      let bal = Number(acc.initialBalance) || 0;
-      for (const tx of state.transactions) {
-        if (tx.accountId === accId) {
-          bal += tx.type === 'income' ? Number(tx.amount) : -Number(tx.amount);
-        }
-      }
-      return bal;
+      return calculateAccountBalance(accId, state.accounts, state.transactions);
     }
 
     function getTotalBalance() {
-      return state.accounts.reduce((sum, acc) => sum + getAccountBalance(acc.id), 0);
+      return calculateTotalBalance(state.accounts, state.transactions);
     }
 
     function getTotalSavedInBottles() {
@@ -1198,11 +1619,11 @@ create policy "Vault header lock"
       return (state.bottles || []).reduce((sum, b) => sum + (Number(b.target) || 0), 0);
     }
 
-    // --- RENDER EVERYTHING ---
     function renderAll() {
       const cur = CURRENCIES[state.currencyIndex % CURRENCIES.length];
       document.getElementById('activeCurrencyBadge').textContent = cur.label;
       document.getElementById('txModalCurrencyLabel').textContent = cur.symbol;
+      document.getElementById('profileAuthBadge').textContent = userProfile.displayName;
 
       const totalBal = getTotalBalance();
       document.getElementById('totalBalanceDisplay').textContent = formatMoney(totalBal, true);
@@ -1210,9 +1631,9 @@ create policy "Vault header lock"
       let monthIncome = 0;
       let monthExpense = 0;
       for (const tx of state.transactions) {
-        if (state.selectedAccountId !== 'all' && tx.accountId !== state.selectedAccountId) continue;
+        if (state.selectedAccountId !== 'all' && tx.accountId !== state.selectedAccountId && tx.toAccountId !== state.selectedAccountId) continue;
         if (tx.type === 'income') monthIncome += Number(tx.amount);
-        else monthExpense += Number(tx.amount);
+        else if (tx.type === 'expense') monthExpense += Number(tx.amount);
       }
 
       document.getElementById('monthExpenseDisplay').textContent = formatMoney(monthExpense, true);
@@ -1222,6 +1643,10 @@ create policy "Vault header lock"
       document.getElementById('pillSavedDisplay').textContent = formatMoney(savedTotal, true);
       document.getElementById('bottlesCountBadge').textContent = `${(state.bottles || []).length} шт.`;
 
+      const subsCount = (state.subscriptions || []).length;
+      document.getElementById('pillSubsDisplay').textContent = `${subsCount} активных`;
+      document.getElementById('subsCardBadge').textContent = subsCount > 0 ? `${subsCount} актив.` : 'Регулярные';
+
       // Safe spend per day
       const now = new Date();
       const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
@@ -1230,18 +1655,50 @@ create policy "Vault header lock"
       const safePerDay = budgetBase > 0 ? Math.round(budgetBase / daysLeft) : 0;
       document.getElementById('dailySafeSpendDisplay').textContent = formatMoney(safePerDay);
 
-      // Budget progress bar
+      // Monthly Budget progress bar
       const pct = state.monthlyBudget > 0 ? Math.min(100, Math.round((monthExpense / state.monthlyBudget) * 100)) : 0;
       document.getElementById('monthlyBudgetBar').style.width = `${pct}%`;
       document.getElementById('budgetSpentText').textContent = `Потрачено: ${formatMoney(monthExpense)}`;
       document.getElementById('budgetRemainingText').textContent = `Лимит: ${formatMoney(state.monthlyBudget)}`;
 
+      renderCategoryBudgetAlerts();
       renderAccountsStrip();
       renderThreeRingsStats(monthExpense);
       renderCategoryChips();
       renderTransactionsList();
       renderAnalytics();
       renderBottlesView();
+    }
+
+    // Feature 5: Category Budget Notifications (80% warning & 100% exceeded)
+    function renderCategoryBudgetAlerts() {
+      const alertBox = document.getElementById('categoryLimitAlertBox');
+      const alertList = document.getElementById('categoryLimitAlertList');
+      const spentByCat = {};
+      state.transactions.forEach(tx => {
+        if (tx.type === 'expense') {
+          spentByCat[tx.categoryId] = (spentByCat[tx.categoryId] || 0) + Number(tx.amount);
+        }
+      });
+
+      const warnings = [];
+      state.categories.filter(c => c.type === 'expense' && Number(c.limit) > 0).forEach(cat => {
+        const spent = spentByCat[cat.id] || 0;
+        const lim = Number(cat.limit);
+        const ratio = Math.round((spent / lim) * 100);
+        if (spent > lim) {
+          warnings.push(`• ${cat.icon} <b>${cat.name}</b>: превышен лимит на ${formatMoney(spent - lim)} (${ratio}%)`);
+        } else if (ratio >= 80) {
+          warnings.push(`• ${cat.icon} <b>${cat.name}</b>: израсходовано ${ratio}% лимита (${formatMoney(spent)} из ${formatMoney(lim)})`);
+        }
+      });
+
+      if (warnings.length > 0) {
+        alertList.innerHTML = warnings.join('<br/>');
+        alertBox.classList.remove('hidden');
+      } else {
+        alertBox.classList.add('hidden');
+      }
     }
 
     function renderAccountsStrip() {
@@ -1261,7 +1718,7 @@ create policy "Vault header lock"
           <span>${acc.icon}</span>
           <span>${acc.name}:</span>
           <span class="font-bold">${formatMoney(bal)}</span>
-          <button type="button" class="edit-acc-bal ml-1 text-[10px] opacity-60 hover:opacity-100" title="Изменить баланс">✎</button>
+          <button type="button" class="edit-acc-bal ml-1 text-[10px] opacity-60 hover:opacity-100" title="Изменить начальный баланс">✎</button>
         `;
         pill.addEventListener('click', (e) => {
           if (e.target.classList.contains('edit-acc-bal')) return;
@@ -1376,44 +1833,67 @@ create policy "Vault header lock"
       });
     }
 
+    // Features 2, 3, 4: Filter by text, type, date range, amount range + Edit Transaction + Transfer display
     function renderTransactionsList() {
       const list = document.getElementById('transactionsList');
       const query = (document.getElementById('searchTxInput').value || '').trim().toLowerCase();
       const typeFilter = document.getElementById('typeFilterSelect').value;
+      const dateFrom = document.getElementById('filterDateFrom').value;
+      const dateTo = document.getElementById('filterDateTo').value;
+      const minAmt = parseFloat(document.getElementById('filterAmountMin').value);
+      const maxAmt = parseFloat(document.getElementById('filterAmountMax').value);
 
       const filtered = state.transactions.filter(tx => {
-        if (state.selectedAccountId !== 'all' && tx.accountId !== state.selectedAccountId) return false;
+        if (state.selectedAccountId !== 'all' && tx.accountId !== state.selectedAccountId && tx.toAccountId !== state.selectedAccountId) return false;
         if (state.selectedCategoryId !== 'all' && tx.categoryId !== state.selectedCategoryId) return false;
         if (typeFilter !== 'all' && tx.type !== typeFilter) return false;
+        if (dateFrom && tx.date && tx.date < dateFrom) return false;
+        if (dateTo && tx.date && tx.date > dateTo) return false;
+        const amt = Number(tx.amount) || 0;
+        if (!isNaN(minAmt) && amt < minAmt) return false;
+        if (!isNaN(maxAmt) && amt > maxAmt) return false;
+
         if (query) {
           const cat = state.categories.find(c => c.id === tx.categoryId);
-          const hay = `${tx.note || ''} ${cat ? cat.name : ''}`.toLowerCase();
+          const acc = state.accounts.find(a => a.id === tx.accountId);
+          const hay = `${tx.note || ''} ${cat ? cat.name : ''} ${acc ? acc.name : ''} ${tx.amount} ${tx.date || ''}`.toLowerCase();
           if (!hay.includes(query)) return false;
         }
         return true;
       });
 
-      document.getElementById('activeFilterLabel').textContent = `${filtered.length} платежей`;
+      document.getElementById('activeFilterLabel').textContent = `${filtered.length} записей`;
       list.innerHTML = '';
 
       if (filtered.length === 0) {
         list.innerHTML = `
           <div class="rounded-[24px] card-soft p-6 text-center space-y-1.5">
             <div class="text-2xl">🌱</div>
-            <div class="text-xs font-bold text-gray-800">Чистый лист — всё по нулям</div>
-            <div class="text-[11px] text-gray-400">Нажми зелёную кнопку «+» внизу или иконку микрофона сверху, чтобы добавить свою первую операцию</div>
+            <div class="text-xs font-bold text-gray-800">Операций не найдено</div>
+            <div class="text-[11px] text-gray-400">Нажми зелёную кнопку «+» внизу, чтобы добавить расход, доход или перевод между счетами</div>
           </div>
         `;
         return;
       }
 
       filtered.forEach(tx => {
-        const cat = state.categories.find(c => c.id === tx.categoryId) || { name: 'Категория', icon: '📌', color: '#64748b' };
-        const acc = state.accounts.find(a => a.id === tx.accountId) || { name: 'Счёт', icon: '💳' };
+        const isTransfer = tx.type === 'transfer';
         const isIncome = tx.type === 'income';
+        const cat = isTransfer
+          ? { name: 'Перевод между счетами', icon: '⇄', color: '#6366f1' }
+          : (state.categories.find(c => c.id === tx.categoryId) || { name: 'Категория', icon: '📌', color: '#64748b' });
+        const fromAcc = state.accounts.find(a => a.id === tx.accountId) || { name: 'Счёт', icon: '💳' };
+        const toAcc = isTransfer ? (state.accounts.find(a => a.id === tx.toAccountId) || { name: 'Счёт', icon: '💳' }) : null;
+
+        const subline = isTransfer
+          ? `${fromAcc.icon} ${fromAcc.name} → ${toAcc.icon} ${toAcc.name}`
+          : `${cat.name} • ${fromAcc.name}`;
+
+        const sign = isTransfer ? '⇄ ' : (isIncome ? '+' : '-');
+        const amountClass = isTransfer ? 'text-indigo-600' : (isIncome ? 'text-[#25b887]' : 'text-gray-900');
 
         const item = document.createElement('div');
-        item.className = 'rounded-2xl bg-white border border-gray-100 shadow-2xs p-3.5 flex items-center justify-between gap-3';
+        item.className = 'rounded-2xl bg-white border border-gray-100 shadow-2xs p-3.5 flex items-center justify-between gap-2.5 hover:border-gray-300 transition cursor-pointer';
         item.innerHTML = `
           <div class="flex items-center gap-3 min-w-0">
             <div class="w-10 h-10 rounded-2xl flex items-center justify-center text-lg flex-shrink-0" style="background-color: ${cat.color}18">
@@ -1421,27 +1901,38 @@ create policy "Vault header lock"
             </div>
             <div class="min-w-0">
               <div class="text-xs font-bold text-gray-900 truncate">${tx.note || cat.name}</div>
-              <div class="text-[11px] text-gray-400 truncate">${cat.name} • ${acc.name}</div>
+              <div class="text-[11px] text-gray-400 truncate">${subline}</div>
             </div>
           </div>
-          <div class="flex items-center gap-2 flex-shrink-0">
-            <div class="text-right">
-              <div class="text-xs font-extrabold ${isIncome ? 'text-[#25b887]' : 'text-gray-900'}">
-                ${isIncome ? '+' : '-'}${formatMoney(tx.amount)}
+          <div class="flex items-center gap-1.5 flex-shrink-0">
+            <div class="text-right mr-1">
+              <div class="text-xs font-extrabold ${amountClass}">
+                ${sign}${formatMoney(tx.amount)}
               </div>
               <div class="text-[10px] text-gray-400">${tx.date || ''}</div>
             </div>
+            <button type="button" class="edit-tx-btn w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-900 flex items-center justify-center text-xs transition" title="Редактировать">
+              ✎
+            </button>
             <button type="button" class="del-tx-btn w-7 h-7 rounded-full bg-gray-100 hover:bg-rose-100 text-gray-400 hover:text-rose-600 flex items-center justify-center text-xs transition" title="Удалить">
               ✕
             </button>
           </div>
         `;
 
-        item.querySelector('.del-tx-btn').addEventListener('click', () => {
+        // Click card or edit button to edit transaction (Feature 3)
+        item.addEventListener('click', (e) => {
+          if (e.target.closest('.del-tx-btn')) return;
+          openAddTxModal(tx.id);
+        });
+
+        item.querySelector('.del-tx-btn').addEventListener('click', (e) => {
+          e.stopPropagation();
+          undoSnapshot = JSON.parse(JSON.stringify(state));
           state.transactions = state.transactions.filter(t => t.id !== tx.id);
           saveState();
           renderAll();
-          showToast('Платеж удален');
+          showToast('Операция удалена', true);
         });
 
         list.appendChild(item);
@@ -1524,27 +2015,31 @@ create policy "Vault header lock"
             .reduce((acc, tx) => acc + Number(tx.amount), 0);
         }
         const limit = Number(cat.limit) || 0;
+        const isExceeded = !isInc && limit > 0 && spent > limit;
+        const isWarning = !isInc && limit > 0 && !isExceeded && spent >= limit * 0.8;
         const pct = limit > 0 ? Math.min(100, Math.round((spent / limit) * 100)) : (grandTotalExpense > 0 && !isInc ? Math.round((spent / grandTotalExpense) * 100) : (spent > 0 ? 100 : 0));
 
         const row = document.createElement('div');
-        row.className = 'p-3 rounded-2xl bg-white border border-gray-100 space-y-1.5 cursor-pointer hover:border-gray-300 transition';
+        row.className = `p-3 rounded-2xl bg-white border ${isExceeded ? 'border-rose-300 bg-rose-50/30' : 'border-gray-100'} space-y-1.5 cursor-pointer hover:border-gray-300 transition`;
         row.innerHTML = `
           <div class="flex items-center justify-between text-xs">
             <div class="flex items-center gap-2 font-bold text-gray-800 min-w-0">
               <span class="w-7 h-7 rounded-xl flex items-center justify-center text-sm flex-shrink-0" style="background-color: ${cat.color}18">${cat.icon}</span>
               <span class="truncate">${cat.name}</span>
               ${isInc ? '<span class="text-[9px] px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-600 font-bold">Доход</span>' : ''}
+              ${isExceeded ? '<span class="text-[9px] px-1.5 py-0.5 rounded-md bg-rose-100 text-rose-600 font-bold">Лимит!</span>' : ''}
+              ${isWarning ? '<span class="text-[9px] px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-700 font-bold">>80%</span>' : ''}
             </div>
             <div class="flex items-center gap-2 flex-shrink-0">
               <div class="text-right">
-                <span class="font-extrabold ${isInc ? 'text-[#25b887]' : 'text-gray-900'}">${formatMoney(spent)}</span>
+                <span class="font-extrabold ${isExceeded ? 'text-rose-600' : (isInc ? 'text-[#25b887]' : 'text-gray-900')}">${formatMoney(spent)}</span>
                 ${limit > 0 ? `<span class="text-[11px] text-gray-400"> / ${formatMoney(limit)}</span>` : ''}
               </div>
               <button type="button" class="edit-cat-btn w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center text-xs transition" title="Редактировать категорию">✎</button>
             </div>
           </div>
           <div class="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-            <div class="h-full rounded-full transition-all duration-300" style="width: ${pct}%; background-color: ${cat.color}"></div>
+            <div class="h-full rounded-full transition-all duration-300" style="width: ${pct}%; background-color: ${isExceeded ? '#ef4444' : cat.color}"></div>
           </div>
         `;
         row.addEventListener('click', () => openCategoryModal(cat.id));
@@ -1552,7 +2047,7 @@ create policy "Vault header lock"
       });
     }
 
-    // --- RENDER BOTTLES VIEW (3rd Screen in Reference) ---
+    // --- RENDER BOTTLES VIEW (Empty state + user-created goals instead of 4 hardcoded bottles) ---
     function renderBottlesView() {
       const bottles = state.bottles || [];
       const totalSaved = getTotalSavedInBottles();
@@ -1563,16 +2058,36 @@ create policy "Vault header lock"
       document.getElementById('totalBottlesCountHeader').textContent = String(bottles.length);
       document.getElementById('goalProgressBar').style.width = `${overallPct}%`;
       document.getElementById('goalPercentText').textContent = `${overallPct}%`;
-      document.getElementById('goalTargetText').textContent = `Цель: ${formatMoney(totalTarget)}`;
+      document.getElementById('goalTargetText').textContent = `Общая цель: ${formatMoney(totalTarget)}`;
 
       const grid = document.getElementById('bottlesGrid');
       grid.innerHTML = '';
 
+      if (bottles.length === 0) {
+        grid.className = 'grid grid-cols-1 gap-3';
+        grid.innerHTML = `
+          <div class="rounded-[26px] card-soft p-6 text-center space-y-2.5">
+            <div class="text-3xl">🧪</div>
+            <div class="text-sm font-extrabold text-gray-900">Создай свою первую бутылочку-цель</div>
+            <p class="text-xs text-gray-400 max-w-xs mx-auto leading-relaxed">
+              Никаких чужих шаблонов — добавь то, на что реально копишь ты (подушка безопасности, отпуск, гаджет), и наполняй бутылочку!
+            </p>
+            <button id="emptyCreateBottleBtn" type="button" class="mt-1 px-4 py-2.5 rounded-2xl bg-gray-900 hover:bg-gray-800 text-white text-xs font-bold transition">
+              + Создать первую цель
+            </button>
+          </div>
+        `;
+        document.getElementById('emptyCreateBottleBtn').addEventListener('click', () => {
+          document.getElementById('openAddBottleModalBtn').click();
+        });
+        return;
+      }
+
+      grid.className = 'grid grid-cols-2 gap-3';
       bottles.forEach((bot, idx) => {
         const cur = Number(bot.current) || 0;
         const target = Number(bot.target) || 0;
         const fillPct = target > 0 ? Math.min(100, Math.round((cur / target) * 100)) : (cur > 0 ? 50 : 0);
-        // Calculate liquid level inside the SVG bottle (y from 108 down to 44)
         const liquidHeight = Math.round((fillPct / 100) * 62);
         const liquidY = 108 - liquidHeight;
         const clipId = `bottleClip_${idx}`;
@@ -1586,7 +2101,6 @@ create policy "Vault header lock"
             <div class="text-[10px] text-gray-400 mt-0.5">${target > 0 ? 'Цель: ' + formatMoney(target) : 'Без лимита'}</div>
           </div>
 
-          <!-- SVG Bottle with Cork & Dynamic Liquid Fill -->
           <div class="my-2 cursor-pointer bottle-tap-area" title="Нажми, чтобы пополнить или изменить">
             <svg width="86" height="118" viewBox="0 0 86 118" fill="none" xmlns="http://www.w3.org/2000/svg">
               <defs>
@@ -1594,18 +2108,13 @@ create policy "Vault header lock"
                   <circle cx="43" cy="77" r="30" />
                 </clipPath>
               </defs>
-              <!-- Cork -->
               <rect x="36" y="12" width="14" height="10" rx="2" fill="#8B5A2B" />
-              <!-- Bottle Neck -->
               <rect x="33" y="20" width="20" height="6" rx="2" fill="#d1d5db" />
               <path d="M35 26 H51 L54 48 H32 L35 26 Z" fill="#f3f4f6" stroke="#e5e7eb" stroke-width="1.5" />
-              <!-- Bottle Round Body -->
               <circle cx="43" cy="77" r="31" fill="#ffffff" stroke="#e5e7eb" stroke-width="2" />
-              <!-- Liquid Inside -->
               <g clip-path="url(#${clipId})">
                 <rect x="10" y="${liquidY}" width="66" height="${liquidHeight + 6}" fill="${bot.color || '#25b887'}" rx="4" />
               </g>
-              <!-- Glass Highlight -->
               <path d="M22 65 A24 24 0 0 1 32 52" stroke="white" stroke-width="2.5" stroke-linecap="round" opacity="0.7" />
             </svg>
           </div>
@@ -1637,82 +2146,35 @@ create policy "Vault header lock"
         card.querySelector('.bottle-action-btn').addEventListener('click', openBottlePrompt);
         card.querySelector('.del-bottle-btn').addEventListener('click', (e) => {
           e.stopPropagation();
+          undoSnapshot = JSON.parse(JSON.stringify(state));
           state.bottles = state.bottles.filter(b => b.id !== bot.id);
           saveState();
           renderAll();
-          showToast('Бутылочка удалена');
+          showToast('Бутылочка удалена', true);
         });
 
         grid.appendChild(card);
       });
     }
 
-    // --- VOICE / SMART PARSER LOGIC (Screen 2) ---
-    function parseSmartPhrase(text) {
-      const raw = (text || '').trim();
-      if (!raw) {
-        return { title: 'Введите фразу или сумму', amount: 0, category: state.categories[0] };
-      }
-      const numMatch = raw.match(/(\d+[\d\s.,]*)/);
-      let amount = 0;
-      let cleanTitle = raw;
-      if (numMatch) {
-        amount = parseFloat(numMatch[1].replace(/\s+/g, '').replace(',', '.')) || 0;
-        cleanTitle = raw.replace(numMatch[0], '').trim() || 'Платёж';
-      }
-
-      const lower = raw.toLowerCase();
-      let matchedCat = state.categories.find(c => c.type === 'expense') || state.categories[0];
-
-      if (/(квартир|жкх|коммунал|аренд|свет|вода)/.test(lower)) {
-        matchedCat = state.categories.find(c => c.id === 'cat_bills') || matchedCat;
-      } else if (/(продукт|еда|супермаркет|магнит|пятерочк|вкусвилл|перекресток|лента|хлеб|молок)/.test(lower)) {
-        matchedCat = state.categories.find(c => c.id === 'cat_food') || matchedCat;
-      } else if (/(кафе|кофе|ресторан|пицц|бургер|доставк|обед|ужин|шаурм|суши)/.test(lower)) {
-        matchedCat = state.categories.find(c => c.id === 'cat_cafe') || matchedCat;
-      } else if (/(озон|ozon|вб|валберис|wildberries|маркет|яндекс маркет|али)/.test(lower)) {
-        matchedCat = state.categories.find(c => c.id === 'cat_market') || matchedCat;
-      } else if (/(бензин|азс|заправк|мойк|шиномонтаж|парковк|штраф|авто)/.test(lower)) {
-        matchedCat = state.categories.find(c => c.id === 'cat_auto') || matchedCat;
-      } else if (/(такси|метро|автобус|проезд|каршеринг|поезд|электричк)/.test(lower)) {
-        matchedCat = state.categories.find(c => c.id === 'cat_taxi') || matchedCat;
-      } else if (/(аптек|врач|лекарств|анализ|клиник|стоматолог|таблетк)/.test(lower)) {
-        matchedCat = state.categories.find(c => c.id === 'cat_pharma') || matchedCat;
-      } else if (/(связь|интернет|подписк|телефон|мтс|билайн|мегафон|т2|яндекс плюс|vpn)/.test(lower)) {
-        matchedCat = state.categories.find(c => c.id === 'cat_subs') || matchedCat;
-      } else if (/(одежд|обувь|куртк|кроссовк|джинс|футболк)/.test(lower)) {
-        matchedCat = state.categories.find(c => c.id === 'cat_clothes') || matchedCat;
-      } else if (/(стрижк|барбер|маникюр|косметик|салон|уход)/.test(lower)) {
-        matchedCat = state.categories.find(c => c.id === 'cat_beauty') || matchedCat;
-      } else if (/(спорт|зал|фитнес|тренировк|бассейн)/.test(lower)) {
-        matchedCat = state.categories.find(c => c.id === 'cat_sport') || matchedCat;
-      } else if (/(кино|игр|бар|клуб|концерт|развлеч|театр)/.test(lower)) {
-        matchedCat = state.categories.find(c => c.id === 'cat_fun') || matchedCat;
-      } else if (/(копил|отлож|сбереж)/.test(lower)) {
-        matchedCat = state.categories.find(c => c.id === 'cat_save') || matchedCat;
-      }
-
-      return { title: cleanTitle, amount, category: matchedCat };
-    }
-
-    function updateSmartPreview() {
-      const val = document.getElementById('smartParseInput').value;
-      const parsed = parseSmartPhrase(val);
-      document.getElementById('smartPreviewIcon').textContent = parsed.category ? parsed.category.icon : '💸';
-      document.getElementById('smartPreviewTitle').textContent = parsed.title;
-      document.getElementById('smartPreviewCategory').textContent = parsed.category ? parsed.category.name : 'Расход';
-      document.getElementById('smartPreviewAmount').textContent = `- ${formatMoney(parsed.amount)}`;
-    }
-
-    // --- KEYBOARD DISMISS & CATEGORY EDIT HELPERS ---
-    let editingCategoryId = null;
-
+    // =========================================================================
+    // 5. MODALS: ADD/EDIT TX, TRANSFER, CATEGORY EDIT, WEEKLY REPORT & PWA
+    // =========================================================================
     function dismissKeyboard() {
       try {
         if (document.activeElement && typeof document.activeElement.blur === 'function') {
           document.activeElement.blur();
         }
       } catch (e) {}
+    }
+
+    function updateSmartPreview() {
+      const val = document.getElementById('smartParseInput').value;
+      const parsed = parseSmartPhrase(val, state.categories);
+      document.getElementById('smartPreviewIcon').textContent = parsed.category ? parsed.category.icon : '💸';
+      document.getElementById('smartPreviewTitle').textContent = parsed.title;
+      document.getElementById('smartPreviewCategory').textContent = parsed.category ? parsed.category.name : 'Расход';
+      document.getElementById('smartPreviewAmount').textContent = `- ${formatMoney(parsed.amount)}`;
     }
 
     function openCategoryModal(catId = null) {
@@ -1734,7 +2196,7 @@ create policy "Vault header lock"
         delBtn.classList.remove('hidden');
       } else {
         modalTitle.textContent = 'Новая категория';
-        document.getElementById('catTypeSelect').value = currentTxModalType || 'expense';
+        document.getElementById('catTypeSelect').value = currentTxModalType === 'income' ? 'income' : 'expense';
         document.getElementById('catNameInput').value = '';
         document.getElementById('catIconInput').value = '🛍️';
         document.getElementById('catColorInput').value = palette[state.categories.length % palette.length];
@@ -1744,27 +2206,60 @@ create policy "Vault header lock"
       document.getElementById('categoryModal').classList.remove('hidden');
     }
 
-    // --- ADD TX MODAL HELPERS ---
-    function openAddTxModal() {
+    // Supports creating new transaction, editing existing transaction (Feature 3), or initiating transfer (Feature 2)
+    function openAddTxModal(editTxId = null, initialType = 'expense') {
+      editingTransactionId = editTxId;
       const modal = document.getElementById('addTxModal');
-      modal.classList.remove('hidden');
-      document.getElementById('txAmountInput').value = '';
-      document.getElementById('txNoteInput').value = '';
-      document.getElementById('txDateInput').value = new Date().toISOString().slice(0, 10);
+      const headerTitle = document.getElementById('txModalHeaderTitle');
+      const saveBtn = document.getElementById('saveTxBtn');
 
       const accSelect = document.getElementById('txAccountSelect');
+      const toAccSelect = document.getElementById('txToAccountSelect');
       accSelect.innerHTML = '';
+      toAccSelect.innerHTML = '';
       state.accounts.forEach(acc => {
-        const opt = document.createElement('option');
-        opt.value = acc.id;
-        opt.textContent = `${acc.icon} ${acc.name} (${formatMoney(getAccountBalance(acc.id))})`;
-        accSelect.appendChild(opt);
+        const label = `${acc.icon} ${acc.name} (${formatMoney(getAccountBalance(acc.id))})`;
+        const opt1 = document.createElement('option');
+        opt1.value = acc.id;
+        opt1.textContent = label;
+        accSelect.appendChild(opt1);
+
+        const opt2 = document.createElement('option');
+        opt2.value = acc.id;
+        opt2.textContent = label;
+        toAccSelect.appendChild(opt2);
       });
-      if (state.selectedAccountId !== 'all') {
-        accSelect.value = state.selectedAccountId;
+
+      if (state.accounts.length > 1) {
+        toAccSelect.selectedIndex = 1;
       }
 
-      setTxModalType('expense');
+      if (editTxId) {
+        const tx = state.transactions.find(t => t.id === editTxId);
+        if (!tx) return;
+        headerTitle.textContent = 'Редактировать операцию';
+        saveBtn.textContent = 'Сохранить изменения';
+        document.getElementById('txAmountInput').value = tx.amount;
+        document.getElementById('txNoteInput').value = tx.note || '';
+        document.getElementById('txDateInput').value = tx.date || new Date().toISOString().slice(0, 10);
+        accSelect.value = tx.accountId;
+        if (tx.toAccountId) toAccSelect.value = tx.toAccountId;
+        setTxModalType(tx.type || 'expense');
+        if (tx.categoryId) {
+          selectedModalCategoryId = tx.categoryId;
+          renderModalCategoryGrid();
+        }
+      } else {
+        headerTitle.textContent = initialType === 'transfer' ? 'Перевод между счетами' : 'Новая операция';
+        saveBtn.textContent = 'Сохранить платеж';
+        document.getElementById('txAmountInput').value = '';
+        document.getElementById('txNoteInput').value = '';
+        document.getElementById('txDateInput').value = new Date().toISOString().slice(0, 10);
+        if (state.selectedAccountId !== 'all') accSelect.value = state.selectedAccountId;
+        setTxModalType(initialType);
+      }
+
+      modal.classList.remove('hidden');
       setTimeout(() => document.getElementById('txAmountInput').focus(), 80);
     }
 
@@ -1772,25 +2267,45 @@ create policy "Vault header lock"
       currentTxModalType = type;
       const expBtn = document.getElementById('txTypeExpenseBtn');
       const incBtn = document.getElementById('txTypeIncomeBtn');
+      const trfBtn = document.getElementById('txTypeTransferBtn');
+      const toAccWrapper = document.getElementById('txToAccountWrapper');
+      const catSection = document.getElementById('txCategorySection');
+      const fromLabel = document.getElementById('txFromAccountLabel');
+
+      expBtn.className = 'py-2 rounded-xl text-xs font-bold text-gray-500 hover:text-gray-900 transition';
+      incBtn.className = 'py-2 rounded-xl text-xs font-bold text-gray-500 hover:text-gray-900 transition';
+      trfBtn.className = 'py-2 rounded-xl text-xs font-bold text-gray-500 hover:text-gray-900 transition';
+
       if (type === 'expense') {
         expBtn.className = 'py-2 rounded-xl text-xs font-bold bg-white text-gray-900 shadow-xs transition';
-        incBtn.className = 'py-2 rounded-xl text-xs font-bold text-gray-500 hover:text-gray-900 transition';
-      } else {
+        toAccWrapper.classList.add('hidden');
+        catSection.classList.remove('hidden');
+        fromLabel.textContent = 'Счет списания';
+      } else if (type === 'income') {
         incBtn.className = 'py-2 rounded-xl text-xs font-bold bg-white text-[#25b887] shadow-xs transition';
-        expBtn.className = 'py-2 rounded-xl text-xs font-bold text-gray-500 hover:text-gray-900 transition';
+        toAccWrapper.classList.add('hidden');
+        catSection.classList.remove('hidden');
+        fromLabel.textContent = 'Счет зачисления';
+      } else if (type === 'transfer') {
+        trfBtn.className = 'py-2 rounded-xl text-xs font-bold bg-white text-indigo-600 shadow-xs transition';
+        toAccWrapper.classList.remove('hidden');
+        catSection.classList.add('hidden');
+        fromLabel.textContent = 'Откуда списать';
       }
 
-      const availableCats = state.categories.filter(c => c.type === type);
-      if (availableCats.length > 0) {
-        selectedModalCategoryId = availableCats[0].id;
+      if (type !== 'transfer') {
+        const availableCats = state.categories.filter(c => c.type === type);
+        if (availableCats.length > 0 && !availableCats.some(c => c.id === selectedModalCategoryId)) {
+          selectedModalCategoryId = availableCats[0].id;
+        }
+        renderModalCategoryGrid();
       }
-      renderModalCategoryGrid();
     }
 
     function renderModalCategoryGrid() {
       const grid = document.getElementById('txCategoryGrid');
       grid.innerHTML = '';
-      const cats = state.categories.filter(c => c.type === currentTxModalType);
+      const cats = state.categories.filter(c => c.type === (currentTxModalType === 'income' ? 'income' : 'expense'));
 
       cats.forEach(cat => {
         const active = cat.id === selectedModalCategoryId;
@@ -1820,23 +2335,70 @@ create policy "Vault header lock"
       });
     }
 
-    function evaluateMathInput(raw) {
-      const cleaned = String(raw).replace(/,/g, '.').replace(/[^0-9.+\-*/]/g, '');
-      if (!cleaned) return 0;
-      try {
-        const tokens = cleaned.split(/([+\-*/])/);
-        let total = parseFloat(tokens[0]) || 0;
-        for (let i = 1; i < tokens.length; i += 2) {
-          const op = tokens[i];
-          const val = parseFloat(tokens[i + 1]) || 0;
-          if (op === '+') total += val;
-          else if (op === '-') total -= val;
-          else if (op === '*') total *= val;
-          else if (op === '/' && val !== 0) total /= val;
+    // Feature 7: Build Weekly Telegram Report
+    function buildWeeklyReportText() {
+      const now = new Date();
+      const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+      let weekExpense = 0;
+      let weekIncome = 0;
+      const byCat = {};
+
+      state.transactions.forEach(tx => {
+        if (!tx.date || tx.date < weekAgo) return;
+        if (tx.type === 'expense') {
+          weekExpense += Number(tx.amount) || 0;
+          const cat = state.categories.find(c => c.id === tx.categoryId);
+          const name = cat ? `${cat.icon} ${cat.name}` : 'Прочее';
+          byCat[name] = (byCat[name] || 0) + Number(tx.amount);
+        } else if (tx.type === 'income') {
+          weekIncome += Number(tx.amount) || 0;
         }
-        return Math.round(total * 100) / 100;
-      } catch (e) {
-        return parseFloat(cleaned) || 0;
+      });
+
+      const topLines = Object.entries(byCat)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([k, v]) => `  • ${k}: ${formatMoney(v)}`)
+        .join('\n') || '  • Расходов за 7 дней не было';
+
+      return [
+        `📊 VibeCash — Еженедельный отчёт (${weekAgo} — ${now.toISOString().slice(0, 10)})`,
+        `💳 Общий баланс: ${formatMoney(getTotalBalance(), true)}`,
+        `📉 Расходы за 7 дн.: ${formatMoney(weekExpense)}`,
+        `📈 Доходы за 7 дн.: ${formatMoney(weekIncome)}`,
+        `🏆 Топ категорий за неделю:`,
+        topLines
+      ].join('\n');
+    }
+
+    // Feature 8: Offline & PWA Service Worker Registration
+    function registerOfflineServiceWorker() {
+      const updateOnlineStatus = () => {
+        const badge = document.getElementById('offlineBadge');
+        if (navigator.onLine) badge.classList.add('hidden');
+        else badge.classList.remove('hidden');
+      };
+      window.addEventListener('online', updateOnlineStatus);
+      window.addEventListener('offline', updateOnlineStatus);
+      updateOnlineStatus();
+
+      if ('serviceWorker' in navigator) {
+        try {
+          const swCode = `
+            const CACHE_NAME = 'vibecash-pwa-v3';
+            self.addEventListener('install', (e) => { self.skipWaiting(); });
+            self.addEventListener('activate', (e) => { e.waitUntil(self.clients.claim()); });
+            self.addEventListener('fetch', (e) => {
+              if (e.request.method !== 'GET') return;
+              e.respondWith(
+                fetch(e.request).catch(() => caches.match(e.request))
+              );
+            });
+          `;
+          const blob = new Blob([swCode], { type: 'application/javascript' });
+          const swUrl = URL.createObjectURL(blob);
+          navigator.serviceWorker.register(swUrl).catch(() => {});
+        } catch (e) {}
       }
     }
 
@@ -1868,15 +2430,93 @@ create policy "Vault header lock"
       if (target === 'bottles') renderBottlesView();
     }
 
-    // --- WIRE ALL CONTROLS ---
+    // =========================================================================
+    // 6. WIRE ALL UI CONTROLS
+    // =========================================================================
     window.addEventListener('DOMContentLoaded', () => {
+      registerOfflineServiceWorker();
+      processDueSubscriptions();
+
+      // Show Onboarding Wizard on first visit if not onboarded yet
+      if (!state.onboarded && state.transactions.length === 0 && state.bottles.length === 0) {
+        document.getElementById('onboardingModal').classList.remove('hidden');
+      }
+
       document.querySelectorAll('.nav-tab-btn').forEach(btn => {
         btn.addEventListener('click', () => switchTab(btn.getAttribute('data-tab')));
       });
 
       document.getElementById('moreStatsLinkBtn').addEventListener('click', () => switchTab('analytics'));
+      document.getElementById('goLimitsFromAlertBtn').addEventListener('click', () => switchTab('analytics'));
       document.getElementById('dashboardBottlesCardBtn').addEventListener('click', () => switchTab('bottles'));
       document.getElementById('quickGoBottlesPill').addEventListener('click', () => switchTab('bottles'));
+      document.getElementById('headerSyncPillBtn').addEventListener('click', () => switchTab('settings'));
+
+      // Onboarding Modal
+      document.getElementById('openOnboardingBtn').addEventListener('click', () => {
+        document.getElementById('onbBalanceInput').value = state.accounts[0] ? state.accounts[0].initialBalance : '';
+        document.getElementById('onbBudgetInput').value = state.monthlyBudget || '';
+        document.getElementById('onboardingModal').classList.remove('hidden');
+      });
+      document.getElementById('closeOnboardingModalBtn').addEventListener('click', () => {
+        state.onboarded = true;
+        saveState();
+        document.getElementById('onboardingModal').classList.add('hidden');
+      });
+      document.getElementById('skipOnboardingBtn').addEventListener('click', () => {
+        state.onboarded = true;
+        saveState();
+        document.getElementById('onboardingModal').classList.add('hidden');
+        showToast('Все балансы оставлены на 0 ₽');
+      });
+      document.getElementById('saveOnboardingBtn').addEventListener('click', () => {
+        const bal = parseFloat(document.getElementById('onbBalanceInput').value) || 0;
+        const budget = parseFloat(document.getElementById('onbBudgetInput').value) || 0;
+        const goalTitle = document.getElementById('onbGoalTitleInput').value.trim();
+        const goalTarget = parseFloat(document.getElementById('onbGoalTargetInput').value) || 0;
+
+        if (state.accounts[0]) state.accounts[0].initialBalance = bal;
+        state.monthlyBudget = budget;
+        if (goalTitle) {
+          state.bottles.push({
+            id: 'bot_' + Date.now(),
+            title: goalTitle,
+            icon: '🎯',
+            current: 0,
+            target: goalTarget,
+            color: '#25b887'
+          });
+        }
+        state.onboarded = true;
+        saveState();
+        document.getElementById('onboardingModal').classList.add('hidden');
+        renderAll();
+        showToast('Параметры сохранены!');
+      });
+
+      // Undo Toast button
+      document.getElementById('toastUndoBtn').addEventListener('click', () => {
+        if (undoSnapshot) {
+          state = undoSnapshot;
+          undoSnapshot = null;
+          saveState();
+          renderAll();
+          showToast('Действие отменено ↩️');
+        }
+      });
+
+      // Confirmation Modal buttons
+      document.getElementById('cancelConfirmModalBtn').addEventListener('click', () => {
+        pendingConfirmCallback = null;
+        document.getElementById('confirmActionModal').classList.add('hidden');
+      });
+      document.getElementById('acceptConfirmModalBtn').addEventListener('click', () => {
+        document.getElementById('confirmActionModal').classList.add('hidden');
+        if (pendingConfirmCallback) {
+          pendingConfirmCallback();
+          pendingConfirmCallback = null;
+        }
+      });
 
       // Voice / Smart Modal
       const openVoice = () => {
@@ -1886,7 +2526,6 @@ create policy "Vault header lock"
         setTimeout(() => document.getElementById('smartParseInput').focus(), 80);
       };
       document.getElementById('openVoiceModalBtn').addEventListener('click', openVoice);
-      document.getElementById('dashboardVoiceCardBtn').addEventListener('click', openVoice);
       document.getElementById('closeVoiceModalBtn').addEventListener('click', () => {
         document.getElementById('voiceModal').classList.add('hidden');
       });
@@ -1903,9 +2542,7 @@ create policy "Vault header lock"
               document.getElementById('smartParseInput').value = transcript;
               updateSmartPreview();
             };
-            recognition.onerror = () => {
-              showToast('Напишите фразу в поле ниже');
-            };
+            recognition.onerror = () => showToast('Напишите фразу в поле ниже');
             recognition.start();
             showToast('Говорите...');
           } catch (e) {
@@ -1918,7 +2555,7 @@ create policy "Vault header lock"
       });
 
       document.getElementById('confirmSmartTxBtn').addEventListener('click', () => {
-        const parsed = parseSmartPhrase(document.getElementById('smartParseInput').value);
+        const parsed = parseSmartPhrase(document.getElementById('smartParseInput').value, state.categories);
         if (!parsed.amount || parsed.amount <= 0) {
           showToast('Укажите сумму платежа (например: кофе 350)');
           return;
@@ -1947,7 +2584,7 @@ create policy "Vault header lock"
         showToast(`Валюта: ${CURRENCIES[state.currencyIndex].label}`);
       });
 
-      // Reset account filter
+      // Reset account filter & Quick Transfer
       document.getElementById('filterAllAccountsBtn').addEventListener('click', () => {
         state.selectedAccountId = 'all';
         state.selectedCategoryId = 'all';
@@ -1955,18 +2592,38 @@ create policy "Vault header lock"
         renderAll();
         showToast('Показаны все счета');
       });
+      document.getElementById('quickTransferBtn').addEventListener('click', () => {
+        openAddTxModal(null, 'transfer');
+      });
 
-      // Search & Filter
-      document.getElementById('searchTxInput').addEventListener('input', renderTransactionsList);
+      // Extended Search & Filter (Feature 4)
+      document.getElementById('toggleAdvancedFilterBtn').addEventListener('click', () => {
+        document.getElementById('advancedFilterPanel').classList.toggle('hidden');
+      });
+      ['searchTxInput', 'filterDateFrom', 'filterDateTo', 'filterAmountMin', 'filterAmountMax'].forEach(id => {
+        document.getElementById(id).addEventListener('input', renderTransactionsList);
+      });
       document.getElementById('typeFilterSelect').addEventListener('change', renderTransactionsList);
+      document.getElementById('resetAdvancedFilterBtn').addEventListener('click', () => {
+        document.getElementById('searchTxInput').value = '';
+        document.getElementById('typeFilterSelect').value = 'all';
+        document.getElementById('filterDateFrom').value = '';
+        document.getElementById('filterDateTo').value = '';
+        document.getElementById('filterAmountMin').value = '';
+        document.getElementById('filterAmountMax').value = '';
+        state.selectedCategoryId = 'all';
+        renderAll();
+        showToast('Фильтры сброшены');
+      });
 
-      // Add Transaction Sheet
-      document.getElementById('openAddTxSheetBtn').addEventListener('click', openAddTxModal);
+      // Add / Edit Transaction Sheet (Features 2 & 3)
+      document.getElementById('openAddTxSheetBtn').addEventListener('click', () => openAddTxModal(null, 'expense'));
       document.getElementById('closeAddTxModalBtn').addEventListener('click', () => {
         document.getElementById('addTxModal').classList.add('hidden');
       });
       document.getElementById('txTypeExpenseBtn').addEventListener('click', () => setTxModalType('expense'));
       document.getElementById('txTypeIncomeBtn').addEventListener('click', () => setTxModalType('income'));
+      document.getElementById('txTypeTransferBtn').addEventListener('click', () => setTxModalType('transfer'));
 
       document.getElementById('saveTxBtn').addEventListener('click', () => {
         const amount = evaluateMathInput(document.getElementById('txAmountInput').value);
@@ -1975,23 +2632,139 @@ create policy "Vault header lock"
           return;
         }
         const accountId = document.getElementById('txAccountSelect').value;
+        const toAccountId = document.getElementById('txToAccountSelect').value;
+        if (currentTxModalType === 'transfer' && accountId === toAccountId) {
+          showToast('Выберите разные счета для перевода');
+          return;
+        }
         const note = document.getElementById('txNoteInput').value.trim();
         const date = document.getElementById('txDateInput').value || new Date().toISOString().slice(0, 10);
 
-        state.transactions.unshift({
-          id: 'tx_' + Date.now(),
-          type: currentTxModalType,
-          amount,
-          accountId,
-          categoryId: selectedModalCategoryId,
-          note,
-          date
-        });
+        if (editingTransactionId) {
+          const existing = state.transactions.find(t => t.id === editingTransactionId);
+          if (existing) {
+            existing.type = currentTxModalType;
+            existing.amount = amount;
+            existing.accountId = accountId;
+            existing.toAccountId = currentTxModalType === 'transfer' ? toAccountId : undefined;
+            existing.categoryId = currentTxModalType === 'transfer' ? undefined : selectedModalCategoryId;
+            existing.note = note;
+            existing.date = date;
+          }
+          showToast('Операция обновлена ✎');
+        } else {
+          state.transactions.unshift({
+            id: 'tx_' + Date.now(),
+            type: currentTxModalType,
+            amount,
+            accountId,
+            toAccountId: currentTxModalType === 'transfer' ? toAccountId : undefined,
+            categoryId: currentTxModalType === 'transfer' ? undefined : selectedModalCategoryId,
+            note,
+            date
+          });
+          showToast(currentTxModalType === 'transfer' ? 'Перевод выполнен ⇄' : 'Запись сохранена');
+        }
 
         saveState();
         document.getElementById('addTxModal').classList.add('hidden');
         renderAll();
-        showToast('Запись сохранена');
+      });
+
+      // Subscriptions Modal (Feature 1)
+      const openSubs = () => {
+        renderSubscriptionsModal();
+        document.getElementById('subscriptionsModal').classList.remove('hidden');
+      };
+      document.getElementById('openSubscriptionsModalBtn').addEventListener('click', openSubs);
+      document.getElementById('dashboardSubsCardBtn').addEventListener('click', openSubs);
+      document.getElementById('closeSubscriptionsModalBtn').addEventListener('click', () => {
+        document.getElementById('subscriptionsModal').classList.add('hidden');
+      });
+      document.getElementById('addSubscriptionBtn').addEventListener('click', () => {
+        const title = document.getElementById('subTitleInput').value.trim();
+        const amount = parseFloat(document.getElementById('subAmountInput').value) || 0;
+        const freq = document.getElementById('subFreqSelect').value || 'monthly';
+        const nextDate = document.getElementById('subNextDateInput').value || new Date().toISOString().slice(0, 10);
+        const categoryId = document.getElementById('subCatSelect').value || 'cat_subs';
+        if (!title || amount <= 0) {
+          showToast('Укажите название и сумму подписки');
+          return;
+        }
+        state.subscriptions.push({
+          id: 'sub_' + Date.now(),
+          title,
+          amount,
+          freq,
+          nextDate,
+          categoryId,
+          accountId: state.accounts[0] ? state.accounts[0].id : 'acc_main',
+          active: true
+        });
+        document.getElementById('subTitleInput').value = '';
+        document.getElementById('subAmountInput').value = '';
+        saveState();
+        processDueSubscriptions();
+        renderSubscriptionsModal();
+        renderAll();
+        showToast('Подписка добавлена ↻');
+      });
+
+      // Bank CSV Import Modal (Feature 6)
+      const openBankImport = () => {
+        const sel = document.getElementById('importTargetAccountSelect');
+        sel.innerHTML = '';
+        state.accounts.forEach(acc => {
+          const opt = document.createElement('option');
+          opt.value = acc.id;
+          opt.textContent = `${acc.icon} ${acc.name}`;
+          sel.appendChild(opt);
+        });
+        document.getElementById('csvPasteArea').value = '';
+        document.getElementById('importPreviewBadge').textContent = 'Готово к распознаванию';
+        document.getElementById('bankImportModal').classList.remove('hidden');
+      };
+      document.getElementById('dashboardImportCardBtn').addEventListener('click', openBankImport);
+      document.getElementById('openImportModalBtn').addEventListener('click', openBankImport);
+      document.getElementById('closeBankImportModalBtn').addEventListener('click', () => {
+        document.getElementById('bankImportModal').classList.add('hidden');
+      });
+      document.getElementById('triggerCsvFileSelectBtn').addEventListener('click', () => {
+        document.getElementById('csvFileInput').click();
+      });
+      document.getElementById('csvFileInput').addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const content = String(ev.target.result || '');
+          document.getElementById('csvPasteArea').value = content;
+          const preview = parseBankCsvLines(content, state.categories);
+          document.getElementById('importPreviewBadge').textContent = `Найдено операций для импорта: ${preview.length}`;
+        };
+        reader.readAsText(file, 'utf-8');
+      });
+      document.getElementById('csvPasteArea').addEventListener('input', (e) => {
+        const preview = parseBankCsvLines(e.target.value, state.categories);
+        document.getElementById('importPreviewBadge').textContent = `Найдено операций для импорта: ${preview.length}`;
+      });
+      document.getElementById('confirmCsvImportBtn').addEventListener('click', () => {
+        const rawText = document.getElementById('csvPasteArea').value;
+        const targetAcc = document.getElementById('importTargetAccountSelect').value || (state.accounts[0] ? state.accounts[0].id : 'acc_main');
+        const parsed = parseBankCsvLines(rawText, state.categories);
+        if (parsed.length === 0) {
+          showToast('Не найдено строк с датой и суммой');
+          return;
+        }
+        undoSnapshot = JSON.parse(JSON.stringify(state));
+        parsed.forEach(tx => {
+          tx.accountId = targetAcc;
+          state.transactions.unshift(tx);
+        });
+        saveState();
+        document.getElementById('bankImportModal').classList.add('hidden');
+        renderAll();
+        showToast(`Импортировано операций: ${parsed.length} 🏦`, true);
       });
 
       // Add Account Modal
@@ -2044,13 +2817,14 @@ create policy "Vault header lock"
           showToast('Оставьте хотя бы 2 категории');
           return;
         }
+        undoSnapshot = JSON.parse(JSON.stringify(state));
         state.categories = state.categories.filter(c => c.id !== editingCategoryId);
         if (state.selectedCategoryId === editingCategoryId) state.selectedCategoryId = 'all';
         saveState();
         dismissKeyboard();
         document.getElementById('categoryModal').classList.add('hidden');
         renderAll();
-        showToast('Категория удалена');
+        showToast('Категория удалена', true);
       });
 
       document.getElementById('saveCategoryBtn').addEventListener('click', () => {
@@ -2076,14 +2850,7 @@ create policy "Vault header lock"
           showToast('Категория обновлена');
         } else {
           const newId = 'cat_' + Date.now();
-          state.categories.push({
-            id: newId,
-            name,
-            icon,
-            type,
-            color,
-            limit
-          });
+          state.categories.push({ id: newId, name, icon, type, color, limit });
           selectedModalCategoryId = newId;
           showToast('Категория создана');
         }
@@ -2105,7 +2872,7 @@ create policy "Vault header lock"
       document.getElementById('saveBottleBtn').addEventListener('click', () => {
         const title = document.getElementById('bottleTitleInput').value.trim();
         const target = parseFloat(document.getElementById('bottleTargetInput').value) || 0;
-        const icon = document.getElementById('bottleIconInput').value.trim() || '🧪';
+        const icon = document.getElementById('bottleIconInput').value.trim() || '🎯';
         if (!title) {
           showToast('Укажите название цели');
           return;
@@ -2117,8 +2884,7 @@ create policy "Vault header lock"
           icon,
           current: 0,
           target,
-          color: colors[state.bottles.length % colors.length],
-          dateLabel: 'В процессе'
+          color: colors[state.bottles.length % colors.length]
         });
         saveState();
         document.getElementById('bottleModal').classList.add('hidden');
@@ -2141,7 +2907,7 @@ create policy "Vault header lock"
 
       document.getElementById('depositGoalBtn').addEventListener('click', () => {
         if (!state.bottles || state.bottles.length === 0) {
-          showToast('Сначала создайте бутылочку');
+          document.getElementById('openAddBottleModalBtn').click();
           return;
         }
         const firstBottle = state.bottles[0];
@@ -2167,27 +2933,82 @@ create policy "Vault header lock"
         document.getElementById('quickPromptModal').classList.add('hidden');
       });
 
-      // TMA Info Modal
-      document.getElementById('openTmaCodeBtn').addEventListener('click', () => {
-        document.getElementById('tmaInfoModal').classList.remove('hidden');
+      // Feature 7: Bot Notifications & Weekly Report actions
+      if (state.botNotifications) {
+        document.getElementById('botReminderToggle').checked = !!state.botNotifications.enabled;
+        document.getElementById('botReminderTimeInput').value = state.botNotifications.reminderTime || '20:00';
+        document.getElementById('botTokenInput').value = state.botNotifications.botToken || '';
+      }
+      const saveBotPrefs = () => {
+        state.botNotifications = {
+          enabled: document.getElementById('botReminderToggle').checked,
+          reminderTime: document.getElementById('botReminderTimeInput').value || '20:00',
+          botToken: document.getElementById('botTokenInput').value.trim()
+        };
+        saveState();
+      };
+      document.getElementById('botReminderToggle').addEventListener('change', () => {
+        saveBotPrefs();
+        showToast(state.botNotifications.enabled ? 'Напоминания включены 🔔' : 'Напоминания выключены');
       });
-      document.getElementById('closeTmaInfoModalBtn').addEventListener('click', () => {
-        document.getElementById('tmaInfoModal').classList.add('hidden');
-      });
-      document.getElementById('gotItTmaBtn').addEventListener('click', () => {
-        document.getElementById('tmaInfoModal').classList.add('hidden');
+      document.getElementById('botReminderTimeInput').addEventListener('change', saveBotPrefs);
+      document.getElementById('botTokenInput').addEventListener('change', saveBotPrefs);
+
+      document.getElementById('copyWeeklyReportBtn').addEventListener('click', () => {
+        copyToClipboard(buildWeeklyReportText(), 'Отчёт за 7 дней скопирован 📊');
       });
 
-      // Export CSV & JSON
+      document.getElementById('sendWeeklyReportBtn').addEventListener('click', async () => {
+        saveBotPrefs();
+        const reportText = buildWeeklyReportText();
+        const token = state.botNotifications && state.botNotifications.botToken;
+        if (token && userProfile.chatId) {
+          try {
+            const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ chat_id: userProfile.chatId, text: reportText })
+            });
+            if (res.ok) {
+              showToast('Отчёт отправлен в ваш Telegram-бот 🤖');
+              return;
+            }
+          } catch (e) {}
+        }
+        try {
+          if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.sendData) {
+            window.Telegram.WebApp.sendData(JSON.stringify({ type: 'weekly_report', report: reportText }));
+            showToast('Отчёт передан боту через WebApp');
+            return;
+          }
+        } catch (e) {}
+        await copyToClipboard(reportText, 'Отчёт сформирован и скопирован в буфер 📋');
+      });
+
+      // Cloud E2EE Passphrase Save & Sync
+      document.getElementById('sbSecretPassInput').value = secretPassphrase;
+      document.getElementById('saveSupabaseConfigBtn').addEventListener('click', async () => {
+        secretPassphrase = document.getElementById('sbSecretPassInput').value.trim();
+        try { localStorage.setItem('vibecash_e2ee_pass_v3', secretPassphrase); } catch (e) {}
+        await initSupabaseClient();
+        await pullStateFromSupabase(true);
+      });
+      document.getElementById('forcePullSupabaseBtn').addEventListener('click', async () => {
+        if (!supabaseClient) await initSupabaseClient();
+        await pullStateFromSupabase(true);
+      });
+
+      // Export CSV & Copy JSON via navigator.clipboard
       document.getElementById('exportCsvBtn').addEventListener('click', () => {
         const headers = ['Дата', 'Тип', 'Категория', 'Счет', 'Сумма', 'Комментарий'];
         const rows = state.transactions.map(tx => {
           const cat = state.categories.find(c => c.id === tx.categoryId);
           const acc = state.accounts.find(a => a.id === tx.accountId);
+          const typeLabel = tx.type === 'income' ? 'Доход' : (tx.type === 'transfer' ? 'Перевод' : 'Расход');
           return [
             tx.date,
-            tx.type === 'income' ? 'Доход' : 'Расход',
-            cat ? cat.name : '',
+            typeLabel,
+            cat ? cat.name : 'Перевод',
             acc ? acc.name : '',
             tx.amount,
             `"${(tx.note || '').replace(/"/g, '""')}"`
@@ -2198,7 +3019,7 @@ create policy "Vault header lock"
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `finance_export_${new Date().toISOString().slice(0, 10)}.csv`;
+        link.download = `vibecash_export_${new Date().toISOString().slice(0, 10)}.csv`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -2206,118 +3027,63 @@ create policy "Vault header lock"
       });
 
       document.getElementById('copyJsonBackupBtn').addEventListener('click', () => {
-        const json = JSON.stringify(state, null, 2);
-        try {
-          const ta = document.createElement('textarea');
-          ta.value = json;
-          document.body.appendChild(ta);
-          ta.select();
-          document.execCommand('copy');
-          document.body.removeChild(ta);
-          showToast('JSON скопирован');
-        } catch (e) {
-          showToast('Ошибка копирования');
-        }
+        copyToClipboard(JSON.stringify(state, null, 2), 'JSON-бэкап скопирован 📋');
       });
 
+      // Feature 9: Run Unit Tests button
+      document.getElementById('runUnitTestsBtn').addEventListener('click', () => {
+        const results = runBuiltInUnitTests();
+        const passed = results.filter(r => r.pass).length;
+        showToast(`Автотесты пройдены: ${passed}/${results.length} ✓`);
+      });
+
+      // Protected Demo Load & Clear All (With Confirmation Modal + Undo Snapshot)
       document.getElementById('loadDemoDataBtn').addEventListener('click', () => {
-        const today = new Date().toISOString().slice(0, 10);
-        state = getZeroState();
-        state.accounts[0].initialBalance = 57584.03;
-        state.monthlyBudget = 120000;
-        state.bottles[0].current = 75000; state.bottles[0].target = 150000;
-        state.bottles[1].current = 170000; state.bottles[1].target = 250000;
-        state.transactions = [
-          { id: 'd1', type: 'expense', amount: 18500, accountId: 'acc_main', categoryId: 'cat_fun', note: 'Выходные и концерты', date: today },
-          { id: 'd2', type: 'expense', amount: 12000, accountId: 'acc_main', categoryId: 'cat_bills', note: 'Коммунальные услуги', date: today },
-          { id: 'd3', type: 'expense', amount: 8000, accountId: 'acc_main', categoryId: 'cat_save', note: 'В копилку', date: today }
-        ];
-        saveState();
-        renderAll();
-        showToast('Загружен пример');
+        openConfirmModal(
+          'Загрузить демо-пример?',
+          'Текущие данные будут заменены демонстрационными операциями. Вы сможете отменить это кнопкой «Отменить».',
+          () => {
+            undoSnapshot = JSON.parse(JSON.stringify(state));
+            const today = new Date().toISOString().slice(0, 10);
+            state = getZeroState();
+            state.onboarded = true;
+            state.accounts[0].initialBalance = 65000;
+            state.accounts[1].initialBalance = 10000;
+            state.monthlyBudget = 80000;
+            state.bottles = [
+              { id: 'bot_d1', title: 'Отпуск у моря', icon: '🌴', current: 45000, target: 120000, color: '#25b887' }
+            ];
+            state.subscriptions = [
+              { id: 'sub_d1', title: 'Домашний интернет и связь', amount: 850, freq: 'monthly', nextDate: advanceDate(today, 'monthly'), categoryId: 'cat_subs', accountId: 'acc_main', active: true }
+            ];
+            state.transactions = [
+              { id: 'd1', type: 'expense', amount: 3450, accountId: 'acc_main', categoryId: 'cat_food', note: 'Супермаркет у дома', date: today },
+              { id: 'd2', type: 'expense', amount: 12000, accountId: 'acc_main', categoryId: 'cat_bills', note: 'Коммунальные платежи', date: today },
+              { id: 'd3', type: 'transfer', amount: 5000, accountId: 'acc_main', toAccountId: 'acc_cash', note: 'Снятие в банкомате', date: today }
+            ];
+            saveState();
+            renderAll();
+            showToast('Демо-пример загружен', true);
+          }
+        );
       });
 
       document.getElementById('clearAllDataBtn').addEventListener('click', () => {
-        state = getZeroState();
-        saveState();
-        renderAll();
-        showToast('Всё сброшено в 0 ₽');
+        openConfirmModal(
+          'Сбросить все данные в 0 ₽?',
+          'Все транзакции, балансы и копилки будут обнулены. Вы сможете вернуть их кнопкой «Отменить».',
+          () => {
+            undoSnapshot = JSON.parse(JSON.stringify(state));
+            state = getZeroState();
+            state.onboarded = true;
+            saveState();
+            renderAll();
+            showToast('Все данные сброшены в 0 ₽', true);
+          }
+        );
       });
 
-      // Supabase UI wiring
-      const tgDetected = detectTelegramUserId();
-      if (tgDetected && (!sbConfig.userId || sbConfig.userId === 'my_vibecash_sync')) {
-        sbConfig.userId = tgDetected;
-      }
-      document.getElementById('sbUserIdInput').value = sbConfig.userId || detectTelegramUserId();
-      document.getElementById('sbSecretPassInput').value = sbConfig.secretPass || '';
-      document.getElementById('sbUrlInput').value = sbConfig.url || '';
-      document.getElementById('sbAnonKeyInput').value = sbConfig.anonKey || '';
-
-      document.getElementById('headerSyncPillBtn').addEventListener('click', () => {
-        switchTab('settings');
-      });
-
-      document.getElementById('saveSupabaseConfigBtn').addEventListener('click', async () => {
-        const userId = document.getElementById('sbUserIdInput').value.trim() || detectTelegramUserId();
-        const secretPass = document.getElementById('sbSecretPassInput').value.trim();
-        const url = normalizeSupabaseUrl(document.getElementById('sbUrlInput').value);
-        document.getElementById('sbUrlInput').value = url;
-        const anonKey = document.getElementById('sbAnonKeyInput').value.trim();
-        if (!url || !anonKey) {
-          showToast('Заполните Project URL и Anon Key');
-          return;
-        }
-        saveSupabaseConfig({ userId, secretPass, url, anonKey });
-        const client = await initSupabaseClient();
-        if (client) {
-          await pullStateFromSupabase(true);
-        }
-      });
-
-      document.getElementById('forcePullSupabaseBtn').addEventListener('click', async () => {
-        if (!supabaseClient) await initSupabaseClient();
-        await pullStateFromSupabase(true);
-      });
-
-      document.getElementById('disconnectSupabaseBtn').addEventListener('click', () => {
-        saveSupabaseConfig({ userId: sbConfig.userId || detectTelegramUserId(), url: '', anonKey: '' });
-        document.getElementById('sbUrlInput').value = '';
-        document.getElementById('sbAnonKeyInput').value = '';
-        supabaseClient = null;
-        updateSyncIndicator('local');
-        showToast('Supabase отключен');
-      });
-
-      // SQL Modal wiring
-      document.getElementById('openSqlModalBtn').addEventListener('click', () => {
-        document.getElementById('sqlModal').classList.remove('hidden');
-      });
-      document.getElementById('closeSqlModalBtn').addEventListener('click', () => {
-        document.getElementById('sqlModal').classList.add('hidden');
-      });
-
-      const copySqlHelper = () => {
-        const sqlText = document.getElementById('sqlCodeBlock').textContent;
-        try {
-          const ta = document.createElement('textarea');
-          ta.value = sqlText;
-          document.body.appendChild(ta);
-          ta.select();
-          document.execCommand('copy');
-          document.body.removeChild(ta);
-          showToast('SQL-скрипт скопирован');
-        } catch (e) {
-          showToast('Не удалось скопировать');
-        }
-      };
-      document.getElementById('copySqlBtn').addEventListener('click', copySqlHelper);
-      document.getElementById('gotItSqlModalBtn').addEventListener('click', () => {
-        copySqlHelper();
-        document.getElementById('sqlModal').classList.add('hidden');
-      });
-
-      // Global Mobile Keyboard Dismissal (Enter key, background tap, scroll, modal actions)
+      // Global Mobile Keyboard Dismissal
       document.querySelectorAll('input').forEach(inp => {
         inp.setAttribute('enterkeyhint', 'done');
         inp.addEventListener('keydown', (e) => {
@@ -2342,19 +3108,18 @@ create policy "Vault header lock"
 
       ['saveTxBtn', 'closeAddTxModalBtn', 'confirmSmartTxBtn', 'closeVoiceModalBtn',
        'saveAccountBtn', 'closeAccountModalBtn', 'saveBottleBtn', 'closeBottleModalBtn',
-       'saveQuickPromptBtn', 'closeQuickPromptBtn', 'saveSupabaseConfigBtn'].forEach(btnId => {
+       'saveQuickPromptBtn', 'closeQuickPromptBtn', 'saveSupabaseConfigBtn',
+       'addSubscriptionBtn', 'closeSubscriptionsModalBtn', 'confirmCsvImportBtn', 'closeBankImportModalBtn'].forEach(btnId => {
         const el = document.getElementById(btnId);
         if (el) el.addEventListener('click', dismissKeyboard);
       });
 
       renderAll();
 
-      // Auto-connect to Supabase if credentials are saved
-      if (sbConfig.url && sbConfig.anonKey) {
-        initSupabaseClient().then(client => {
-          if (client) pullStateFromSupabase(false);
-        });
-      }
+      // Auto-connect to hardcoded Supabase backend
+      initSupabaseClient().then(client => {
+        if (client) pullStateFromSupabase(false);
+      });
     });
   </script>
 </body>

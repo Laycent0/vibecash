@@ -1,0 +1,9 @@
+{
+  "name": "VibeCash — Финансы TMA",
+  "short_name": "VibeCash",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#25b887",
+  "lang": "ru"
+}
